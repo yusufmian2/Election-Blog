@@ -9,4 +9,149 @@ tags: []
 
 
 
-<p>Hello world!</p>
+<div id="interactive-session-in" class="section level1">
+<h1>Interactive Session in </h1>
+<div id="geographic-and-temporal-trends-in-midterm-elections" class="section level2">
+<h2>Geographic and temporal trends in midterm elections?</h2>
+<pre class="r"><code>## make map of vote share by state and CD
+
+# start with 114th congress - 2014 election
+# required packages 
+require(tidyverse)
+require(ggplot2)
+require(sf)
+
+# load geographic data
+get_congress_map &lt;- function(cong=117) {
+  tmp_file &lt;- tempfile()
+  tmp_dir  &lt;- tempdir()
+  zp &lt;- sprintf(&quot;https://cdmaps.polisci.ucla.edu/shp/districts114.zip&quot;,cong)
+  download.file(zp, tmp_file)
+  unzip(zipfile = tmp_file, exdir = tmp_dir)
+  fpath &lt;- paste(tmp_dir, sprintf(&quot;districtShapes/districts114.shp&quot;,cong), sep = &quot;/&quot;)
+  st_read(fpath)
+}
+
+# load 114th congress
+cd117 &lt;- get_congress_map(117)</code></pre>
+<pre><code>## Reading layer `districts114&#39; from data source 
+##   `/private/var/folders/bs/304947wx7_bdvtq7b3dynh5h0000gn/T/RtmpTRlg0I/districtShapes/districts114.shp&#39; 
+##   using driver `ESRI Shapefile&#39;
+## Simple feature collection with 436 features and 15 fields (with 1 geometry empty)
+## Geometry type: MULTIPOLYGON
+## Dimension:     XY
+## Bounding box:  xmin: -179.1473 ymin: 18.91383 xmax: 179.7785 ymax: 71.35256
+## Geodetic CRS:  NAD83</code></pre>
+<pre class="r"><code># select specific state 
+cd117_mi &lt;- cd117 %&gt;% 
+            filter(STATENAME==&quot;Michigan&quot;) %&gt;%
+            mutate(DISTRICT = as.character(DISTRICT))%&gt;%
+            select(DISTRICT)
+
+# add data to plot - 2014 GOP party seat share
+# reload election data - h from previous exercise
+h &lt;- house_party_vote_share_by_district_1948_2020
+
+# filter for 2014 election and state
+R_mi_2020 &lt;- h %&gt;%
+    filter(raceYear == 2020, State == &quot;Michigan&quot;) %&gt;%
+    select(raceYear, State, district_num, RepVotesMajorPercent, DemVotesMajorPercent) %&gt;%
+  # summarize party vote share by district
+    group_by(district_num) %&gt;%
+    summarise(Rep_votes_pct = RepVotesMajorPercent) %&gt;%
+  # rename district variable name to match shapefile
+    rename(DISTRICT = district_num)
+
+# before joining dfs, check classes of variable to be merged on
+class(R_mi_2020$DISTRICT)</code></pre>
+<pre><code>## [1] &quot;numeric&quot;</code></pre>
+<pre class="r"><code>class(cd117_mi$DISTRICT)</code></pre>
+<pre><code>## [1] &quot;character&quot;</code></pre>
+<pre class="r"><code># change class
+cd117_mi$DISTRICT &lt;- as.numeric(cd117_mi$DISTRICT)
+
+# join election returns with shapefiles
+cd117_mi &lt;- cd117_mi %&gt;% left_join(R_mi_2020, by=&quot;DISTRICT&quot;)
+cd117_mi</code></pre>
+<pre><code>## Simple feature collection with 14 features and 2 fields
+## Geometry type: MULTIPOLYGON
+## Dimension:     XY
+## Bounding box:  xmin: -90.41814 ymin: 41.69612 xmax: -82.4186 ymax: 48.26263
+## Geodetic CRS:  NAD83
+## First 10 features:
+##    DISTRICT Rep_votes_pct                       geometry
+## 1         1         62.59 MULTIPOLYGON (((-84.26702 4...
+## 2         2         60.77 MULTIPOLYGON (((-86.43104 4...
+## 3         3         52.96 MULTIPOLYGON (((-85.79066 4...
+## 4         4         66.76 MULTIPOLYGON (((-85.82145 4...
+## 5         5         43.40 MULTIPOLYGON (((-84.16806 4...
+## 6         6         58.17 MULTIPOLYGON (((-86.27396 4...
+## 7         7         58.75 MULTIPOLYGON (((-85.29364 4...
+## 8         8         48.17 MULTIPOLYGON (((-84.60314 4...
+## 9         9         39.96 MULTIPOLYGON (((-83.32514 4...
+## 10       10         66.28 MULTIPOLYGON (((-82.6769 42...</code></pre>
+<pre class="r"><code># time to map!
+ggplot() + 
+  geom_sf(data=cd117_mi,aes(fill=Rep_votes_pct),
+          inherit.aes=FALSE,alpha=0.9) + 
+  scale_fill_gradient(low = &quot;white&quot;, high = &quot;black&quot;, limits=c(10,80)) +
+  theme_void() + ggtitle (&quot;Republican Vote Share in 2020 MI Congressional Elections&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank()) </code></pre>
+<pre><code>## List of 6
+##  $ axis.title.x: list()
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_blank&quot; &quot;element&quot;
+##  $ axis.title.y: list()
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_blank&quot; &quot;element&quot;
+##  $ axis.text.x : list()
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_blank&quot; &quot;element&quot;
+##  $ axis.text.y : list()
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_blank&quot; &quot;element&quot;
+##  $ axis.ticks.x: list()
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_blank&quot; &quot;element&quot;
+##  $ axis.ticks.y: list()
+##   ..- attr(*, &quot;class&quot;)= chr [1:2] &quot;element_blank&quot; &quot;element&quot;
+##  - attr(*, &quot;class&quot;)= chr [1:2] &quot;theme&quot; &quot;gg&quot;
+##  - attr(*, &quot;complete&quot;)= logi FALSE
+##  - attr(*, &quot;validate&quot;)= logi TRUE</code></pre>
+<pre class="r"><code>## make map of GOP vote share by state (national) - 2014
+# use h dataset from earlier
+# house_party_vote_share_by_district_1948_2020 &lt;- 
+  # read_csv(&quot;house party vote share by district 1948-2020.csv&quot;)
+# h &lt;- house_party_vote_share_by_district_1948_2020
+ 
+# filter for relevant variables
+R_2020 &lt;- h %&gt;%
+    filter(raceYear == 2020) %&gt;%
+    select(raceYear, State, district_num, district_id, RepVotes, DemVotes) %&gt;%
+  # summarize party vote share by state
+    group_by(State) %&gt;%
+  # mutate Rep vote margin by state %&gt;%
+    mutate(R_votemargin_st = (sum(RepVotes))/
+                            sum(RepVotes + DemVotes),
+           D_votemargin_st = (sum(DemVotes))/
+                            sum(RepVotes + DemVotes)) %&gt;%
+    rename(state = State)
+
+# load usmap
+# install.packages(&#39;plot_usmap&#39;)
+library(usmap)
+
+states_map &lt;- usmap::us_map()
+unique(states_map$abbr)</code></pre>
+<pre><code>##  [1] &quot;AL&quot; &quot;AK&quot; &quot;AZ&quot; &quot;AR&quot; &quot;CA&quot; &quot;CO&quot; &quot;CT&quot; &quot;DE&quot; &quot;DC&quot; &quot;FL&quot; &quot;GA&quot; &quot;HI&quot; &quot;ID&quot; &quot;IL&quot; &quot;IN&quot;
+## [16] &quot;IA&quot; &quot;KS&quot; &quot;KY&quot; &quot;LA&quot; &quot;ME&quot; &quot;MD&quot; &quot;MA&quot; &quot;MI&quot; &quot;MN&quot; &quot;MS&quot; &quot;MO&quot; &quot;MT&quot; &quot;NE&quot; &quot;NV&quot; &quot;NH&quot;
+## [31] &quot;NJ&quot; &quot;NM&quot; &quot;NY&quot; &quot;NC&quot; &quot;ND&quot; &quot;OH&quot; &quot;OK&quot; &quot;OR&quot; &quot;PA&quot; &quot;RI&quot; &quot;SC&quot; &quot;SD&quot; &quot;TN&quot; &quot;TX&quot; &quot;UT&quot;
+## [46] &quot;VT&quot; &quot;VA&quot; &quot;WA&quot; &quot;WV&quot; &quot;WI&quot; &quot;WY&quot;</code></pre>
+<pre class="r"><code># plot
+plot_usmap(data = R_2020, regions = &quot;states&quot;, labels=TRUE, values = &quot;R_votemargin_st&quot;) + 
+  scale_fill_gradient(low = &quot;white&quot;, high = &quot;red&quot;, name = &quot;GOP two-party voteshare margin&quot;) +
+  theme_void() +labs(title=&quot;Republican Popular Vote Share in 2020 US House Elections&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-2-2.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+</div>
