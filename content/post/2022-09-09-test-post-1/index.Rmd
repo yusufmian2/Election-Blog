@@ -88,7 +88,7 @@ ggplot() +
         axis.ticks.x=element_blank(),
         axis.title.y=element_blank(),
         axis.text.y=element_blank(),
-        axis.ticks.y=element_blank()) 
+        axis.ticks.y=element_blank()) + ggthemes::theme_fivethirtyeight() + theme (plot.background= element_rect(color="blue"))
 
 ## make map of GOP vote share by state (national) - 2014
 # use h dataset from earlier
@@ -108,6 +108,17 @@ R_2020 <- h %>%
            D_votemargin_st = (sum(DemVotes))/
                             sum(RepVotes + DemVotes)) %>%
     rename(state = State)
+R_2014 <- h %>%
+    filter(raceYear == 2014) %>%
+    select(raceYear, State, district_num, district_id, RepVotes, DemVotes) %>%
+  # summarize party vote share by state
+    group_by(State) %>%
+  # mutate Rep vote margin by state %>%
+    mutate(R_votemargin_st2 = (sum(RepVotes))/
+                            sum(RepVotes + DemVotes),
+           D_votemargin_st2 = (sum(DemVotes))/
+                            sum(RepVotes + DemVotes)) %>%
+    rename(state = State)
 
 # load usmap
 # install.packages('plot_usmap')
@@ -120,5 +131,7 @@ unique(states_map$abbr)
 plot_usmap(data = R_2020, regions = "states", labels=TRUE, values = "R_votemargin_st") + 
   scale_fill_gradient(low = "white", high = "red", name = "GOP two-party voteshare margin") +
   theme_void() +labs(title="Republican Popular Vote Share in 2020 US House Elections")
-
+plot_usmap(data = R_2014, regions = c("states", "state", "counties", "county"), labels = TRUE, values = "D_votemargin_st2") + 
+  scale_fill_gradient(low = "white", high = "blue", name = "Dem two-party voteshare margin") +
+  theme_void() +labs(title="Democratic Popular Vote Share by Countyin 2014 US House Elections")
 ```
