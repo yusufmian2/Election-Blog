@@ -59,7 +59,7 @@
         <div class="catalogue-line"></div>
 
         <p>
-            Interactive Session in Geographic and temporal trends in midterm elections? ## make map of vote share by state and CD # start with 114th congress - 2014 election # required packages require(tidyverse) require(ggplot2) require(sf) # load geographic data get_congress_map &lt;- function(cong=117) { tmp_file &lt;- tempfile() tmp_dir &lt;- tempdir() zp &lt;- sprintf(&quot;https://cdmaps.polisci.ucla.edu/shp/districts114.zip&quot;,cong) download.file(zp, tmp_file) unzip(zipfile = tmp_file, exdir = tmp_dir) fpath &lt;- paste(tmp_dir, sprintf(&quot;districtShapes/districts114.shp&quot;,cong), sep = &quot;/&quot;) st_read(fpath) } # load 114th congress cd117 &lt;- get_congress_map(117) ## Reading layer `districts114&#39; from data source ## `/private/var/folders/bs/304947wx7_bdvtq7b3dynh5h0000gn/T/RtmpTRlg0I/districtShapes/districts114.
+            Interactive Session in Geographic and temporal trends in midterm elections? ## make map of vote share by state and CD # start with 114th congress - 2014 election # required packages require(tidyverse) require(ggplot2) require(sf) library(plotly) # load geographic data get_congress_map &lt;- function(cong=117) { tmp_file &lt;- tempfile() tmp_dir &lt;- tempdir() zp &lt;- sprintf(&quot;https://cdmaps.polisci.ucla.edu/shp/districts114.zip&quot;,cong) download.file(zp, tmp_file) unzip(zipfile = tmp_file, exdir = tmp_dir) fpath &lt;- paste(tmp_dir, sprintf(&quot;districtShapes/districts114.shp&quot;,cong), sep = &quot;/&quot;) st_read(fpath) } # load 114th congress cd117 &lt;- get_congress_map(117) ## Reading layer `districts114&#39; from data source ## `/private/var/folders/bs/304947wx7_bdvtq7b3dynh5h0000gn/T/RtmpynZ6tq/districtShapes/districts114.
         </p>
     </div>
 </a>
@@ -79,7 +79,7 @@
         		<footer>
 			
 			<span>
-			&copy; <time datetime="2022-09-09 19:24:58.447155 -0400 EDT m=&#43;0.121431418">2022</time> . Made with <a href='https://gohugo.io'>Hugo</a> using the <a href='https://github.com/EmielH/tale-hugo/'>Tale</a> theme.
+			&copy; <time datetime="2022-09-13 11:02:27.861572 -0400 EDT m=&#43;0.199419043">2022</time> . Made with <a href='https://gohugo.io'>Hugo</a> using the <a href='https://github.com/EmielH/tale-hugo/'>Tale</a> theme.
 			</span>
 		</footer>
 

@@ -9,6 +9,7 @@ tags: []
 
 
 ```{r, include=TRUE, message=FALSE, warning=FALSE, echo=FALSE, eval=TRUE, fig.align="center"}
+knitr::opts_chunk$set(echo = FALSE)
 library(ggplot2)
 library(tidyverse)
 #### want a state-level analysis
@@ -31,6 +32,7 @@ h <- house_party_vote_share_by_district_1948_2020
 require(tidyverse)
 require(ggplot2)
 require(sf)
+library(plotly)
 
 # load geographic data
 get_congress_map <- function(cong=117) {
@@ -78,7 +80,7 @@ cd117_mi <- cd117_mi %>% left_join(R_mi_2020, by="DISTRICT")
 cd117_mi
 
 # time to map!
-ggplot() + 
+mimap <- ggplot() + 
   geom_sf(data=cd117_mi,aes(fill=Rep_votes_pct),
           inherit.aes=FALSE,alpha=0.9) + 
   scale_fill_gradient(low = "white", high = "black", limits=c(10,80)) +
@@ -89,6 +91,10 @@ ggplot() +
         axis.title.y=element_blank(),
         axis.text.y=element_blank(),
         axis.ticks.y=element_blank()) + ggthemes::theme_fivethirtyeight() + theme (plot.background= element_rect(color="blue"))
+  
+fig <- ggplotly(mimap)
+fig
+
 
 ## make map of GOP vote share by state (national) - 2014
 # use h dataset from earlier
