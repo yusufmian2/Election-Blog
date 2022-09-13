@@ -1,5 +1,5 @@
 ---
-title: Test Post 1
+title: Blog Post 1
 author: Yusuf Mian
 date: '2022-09-09'
 slug: []
@@ -20,11 +20,12 @@ house_party_vote_share_by_district_1948_2020 <- read_csv("house party vote share
 h <- house_party_vote_share_by_district_1948_2020
 ```
 
-# Interactive Session in \texttt{R Studio}
 
 ## Geographic and temporal trends in midterm elections?
 
-```{r, include=TRUE, message=FALSE, warning=FALSE, echo=TRUE, eval=TRUE, fig.align="center"}
+In this weekly blog series, I will be analyzing and predicting the 2022 midterms as we approach the November election. This first blog post will be exploring trends in elections by looking at the congressional elections in the State of Michigan to explore a key swingtate, which voted for Trump in 2016 and Biden in 2020. I also will be exploring some of the recent trends of popular voteshare by state and congressional district in recent elections.
+
+```{r, include=TRUE, message=FALSE, warning=FALSE, echo=FALSE, eval=TRUE, fig.align="center"}
 ## make map of vote share by state and CD
 
 # start with 114th congress - 2014 election

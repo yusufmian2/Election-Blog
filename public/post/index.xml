@@ -8,12 +8,12 @@
     <language>en-us</language>
     <lastBuildDate>Fri, 09 Sep 2022 00:00:00 +0000</lastBuildDate><atom:link href="http://example.org/post/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Test Post 1</title>
+      <title>Blog Post 1</title>
       <link>http://example.org/post/2022-09-09-test-post-1/</link>
       <pubDate>Fri, 09 Sep 2022 00:00:00 +0000</pubDate>
       
       <guid>http://example.org/post/2022-09-09-test-post-1/</guid>
-      <description>Interactive Session in Geographic and temporal trends in midterm elections? ## make map of vote share by state and CD # start with 114th congress - 2014 election # required packages require(tidyverse) require(ggplot2) require(sf) library(plotly) # load geographic data get_congress_map &amp;lt;- function(cong=117) { tmp_file &amp;lt;- tempfile() tmp_dir &amp;lt;- tempdir() zp &amp;lt;- sprintf(&amp;quot;https://cdmaps.polisci.ucla.edu/shp/districts114.zip&amp;quot;,cong) download.file(zp, tmp_file) unzip(zipfile = tmp_file, exdir = tmp_dir) fpath &amp;lt;- paste(tmp_dir, sprintf(&amp;quot;districtShapes/districts114.shp&amp;quot;,cong), sep = &amp;quot;/&amp;quot;) st_read(fpath) } # load 114th congress cd117 &amp;lt;- get_congress_map(117) ## Reading layer `districts114&amp;#39; from data source ## `/private/var/folders/bs/304947wx7_bdvtq7b3dynh5h0000gn/T/RtmpynZ6tq/districtShapes/districts114.</description>
+      <description>Geographic and temporal trends in midterm elections? In this weekly blog series, I will be analyzing and predicting the 2022 midterms as we approach the November election. This first blog post will be exploring trends in elections by looking at the congressional elections in the State of Michigan to explore a key swingtate, which voted for Trump in 2016 and Biden in 2020. I also will be exploring some of the recent trends of popular voteshare by state and congressional district in recent elections.</description>
     </item>
     
   </channel>
