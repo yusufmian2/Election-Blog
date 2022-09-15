@@ -33,7 +33,7 @@ For the first analysis of this post, we will be looking at my home state of Mich
 
 <br>
 In the map below, you can see and interact with the Republican voteshare by Congressional district from the most recent 2020 election. As you can see, some of the districts, such as the districts that are home to heavily Democratic areas like Detroit and Ann Arbor (which are labeled with red point and black point respectively) are very safely Democratic. Other districts which are home to the more rural parts of the state, particularly as you head further North, are safely Republican. However, Michigan has multiple, generally suburban, competitive districts which have switched control over recent years. Some of these districts are likely to be competitive again. One thing of note is that Michigan swithced to a nonpartisan redistricting system for the first time after this census, so some of the districts look a little different. However, the trends of which parts of the state are competitive, which parts are safe Republican, and which are safe Democratic are likely to hold true. Additionally, the trends seen in Michigan are likely similar to many parts of the country and suburban areas and how their voters decided to vote with a generally seen unpopular President and "bad" economy contrasted with a key issue of abortion rights being taken away, is likely to be a key part of races in both Michigan and across the country! We may explore some of these geographical trends later, but for now they can be seen in the Michigan congressional map below!
-```{r, echo=FALSE,warning=FALSE,message=FALSE,error=FALSE, results='hide',fig.keep='all'}
+```{r, include=TRUE, message=FALSE, warning=FALSE, echo=FALSE, eval=TRUE, fig.align="center"}
 ## make map of vote share by state and CD
 
 # start with 114th congress - 2014 election
@@ -100,13 +100,13 @@ mimap <- ggplot() +
         axis.ticks.x=element_blank(),
         axis.title.y=element_blank(),
         axis.text.y=element_blank(),
-        axis.ticks.y=element_blank()) + ggthemes::theme_fivethirtyeight() + theme (plot.background= element_rect(color="blue"))
+        axis.ticks.y=element_blank())
   
 fig <- ggplotly(mimap)
 fig
 ```
 <br>
-# Exploration of some national maps- Dem popular vote share
+## Exploration of some national maps- Dem popular vote share
 <br>
 Next, we will be looking at maps of Democratic popular vote share by state from 2014 to 2020. The thing that should immediately stand out is that in the 2020 popular vote map, the Democratic vote share appears a lot darker in numerous states, indicating a higher Democratic vote share. This is not just in important swing states like Michigan or Pennsylvania, but also is true in Democratic strongolds like New York and California and also in numerous Republican strongolds in the south like Texas. A large part of this is that the Democrats won the house and the popular vote share in 2020 and lost in 2014. However, we should keep track of the dramatic changes because it partially indicate that Democrats are becoming more competitive in popular vote share in various states. I don't mean this in terms of seat share, which we should know varies from election to election. However, it may be an interesting consideration as the blog progresses to consider how Democrats have changed their overall popular vote share even if they are not winning as many states just by making more elections competitive and doing better in the elections they win.
 ```{r, include=TRUE, message=FALSE, warning=FALSE, echo=FALSE, eval=TRUE, fig.align="center"}
@@ -157,9 +157,9 @@ plot_usmap(data = D_2014, regions = c("states", "state", "counties", "county"), 
 
 ```
 <br>
-#2014 Republican Vote Share by District - Entire US
+## 2014 Republican Vote Share by District - Entire US
 <br>
-Finally, we have included a map with the Republican popular vote share by district - similar to the map of Michigan - but with a map of the entire country. This allows us to look for the trends shown in the last two maps as well as in the first map, but on a national scale by district.
+Finally, we have included a map with the Republican popular vote share by district - similar to the map of Michigan - but with a map of the entire country. This allows us to look for the trends shown in the last two maps as well as in the first map, but on a national scale by district. This map will be useful for future blogs' analysis with more information, but for now it is a nice visualization of what congressional districts and their results look like across the country and gives us a level of detail past what statewide voteshare for congressional races gives us.
 ```{r, include=TRUE, message=FALSE, warning=FALSE, echo=FALSE, eval=TRUE, fig.align="center"}
 library(tidyverse)
 R_2014 <- h %>%
