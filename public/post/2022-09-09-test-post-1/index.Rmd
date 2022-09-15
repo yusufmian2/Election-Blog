@@ -153,7 +153,7 @@ plot_usmap(data = D_2020, regions = "states", labels=TRUE, values = "D_votemargi
   theme_void() +labs(title="Democratic Popular Vote Share in 2020 US House Elections")
 plot_usmap(data = D_2014, regions = c("states", "state", "counties", "county"), labels = TRUE, values = "D_votemargin_st2") + 
   scale_fill_gradient(low = "white", high = "blue", name = "Dem two-party voteshare margin") +
-  theme_void() +labs(title="Democratic Popular Vote Share by Countyin 2014 US House Elections")
+  theme_void() +labs(title="Democratic Popular Vote Share in 2014 US House Elections")
 
 ```
 <br>
@@ -182,7 +182,7 @@ USMap_simp <- rmapshaper::ms_simplify(cd114, keep = 0.01)
 USMap <- ggplot() +
   geom_sf(data=USMap_simp,aes(fill=R_votemargin_district),
           inherit.aes=FALSE,alpha=0.9) +
-  scale_fill_gradient(low = "white", high = "black", limits=c(0,90)) +
+  scale_fill_gradient(low = "white", high = "black", limits=c(0,90)) +ggtitle("Entire US- Republican Popular Vote Share by Congressional District")
   theme_void() +
   theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
