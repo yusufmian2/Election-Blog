@@ -5,6 +5,7 @@ date: '2022-09-09'
 slug: []
 categories: []
 tags: []
+summary: "This is the first post of a weekly blog post leading into the 2022 Midterm elections!"
 ---
 
 
@@ -24,7 +25,14 @@ h <- house_party_vote_share_by_district_1948_2020
 ## Geographic and temporal trends in midterm elections?
 
 In this weekly blog series, I will be analyzing and predicting the 2022 midterms as we approach the November election. This first blog post will be exploring trends in elections by looking at the congressional elections in the State of Michigan to explore a key swingtate, which voted for Trump in 2016 and Biden in 2020. I also will be exploring some of the recent trends of popular voteshare by state and congressional district in recent elections.
+<br>
 
+# Michigan - Swing State!
+<br>
+For the first analysis of this post, we will be looking at my home state of Michigan, which has been a key battleground state in modern electoral politics. The state, which went to President Trump in 2016, is home to two Democratic senators and a Democratic governor, but is still always the center of a competitve statewide race and multiple close Congressional districts.
+
+<br>
+In the map below, you can see and interact with the Republican voteshare by Congressional district from the most recent 2020 election. As you can see, some of the districts, such as the districts that are home to heavily Democratic areas like Detroit and Ann Arbor (which are labeled with red point and black point respectively) are very safely Democratic. Other districts which are home to the more rural parts of the state, particularly as you head further North, are safely Republican. However, Michigan has multiple, generally suburban, competitive districts which have switched control over recent years. Some of these districts are likely to be competitive again. One thing of note is that Michigan swithced to a nonpartisan redistricting system for the first time after this census, so some of the districts look a little different. However, the trends of which parts of the state are competitive, which parts are safe Republican, and which are safe Democratic are likely to hold true. Additionally, the trends seen in Michigan are likely similar to many parts of the country and suburban areas and how their voters decided to vote with a generally seen unpopular President and "bad" economy contrasted with a key issue of abortion rights being taken away, is likely to be a key part of races in both Michigan and across the country! We may explore some of these geographical trends later, but for now they can be seen in the Michigan congressional map below!
 ```{r, include=TRUE, message=FALSE, warning=FALSE, echo=FALSE, eval=TRUE, fig.align="center"}
 ## make map of vote share by state and CD
 
@@ -69,21 +77,22 @@ R_mi_2020 <- h %>%
   # rename district variable name to match shapefile
     rename(DISTRICT = district_num)
 
-# before joining dfs, check classes of variable to be merged on
-class(R_mi_2020$DISTRICT)
-class(cd117_mi$DISTRICT)
 
 # change class
 cd117_mi$DISTRICT <- as.numeric(cd117_mi$DISTRICT)
 
 # join election returns with shapefiles
 cd117_mi <- cd117_mi %>% left_join(R_mi_2020, by="DISTRICT")
-cd117_mi
+
+micities <- data.frame(city = c("Ann Arbor", 
+    "Detroit"), longitude = c(-83.7430, -83.0458), latitude=c(42.2808, 42.3314))
+
 
 # time to map!
 mimap <- ggplot() + 
   geom_sf(data=cd117_mi,aes(fill=Rep_votes_pct),
           inherit.aes=FALSE,alpha=0.9) + 
+  geom_point(data = micities, aes(x = longitude, y = latitude), size = 2.5, shape = c(19,21), fill = c("blue", "darkred"))+
   scale_fill_gradient(low = "white", high = "black", limits=c(10,80)) +
   theme_void() + ggtitle ("Republican Vote Share in 2020 MI Congressional Elections")
   theme(axis.title.x=element_blank(),
@@ -95,7 +104,12 @@ mimap <- ggplot() +
   
 fig <- ggplotly(mimap)
 fig
-
+```
+<br>
+# Exploration of some national maps- Dem popular vote share
+<br>
+Next
+```{r, include=TRUE, message=FALSE, warning=FALSE, echo=FALSE, eval=TRUE, fig.align="center"}
 
 ## make map of GOP vote share by state (national) - 2014
 # use h dataset from earlier
@@ -104,7 +118,7 @@ fig
 # h <- house_party_vote_share_by_district_1948_2020
  
 # filter for relevant variables
-R_2020 <- h %>%
+D_2020 <- h %>%
     filter(raceYear == 2020) %>%
     select(raceYear, State, district_num, district_id, RepVotes, DemVotes) %>%
   # summarize party vote share by state
@@ -115,7 +129,7 @@ R_2020 <- h %>%
            D_votemargin_st = (sum(DemVotes))/
                             sum(RepVotes + DemVotes)) %>%
     rename(state = State)
-R_2014 <- h %>%
+D_2014 <- h %>%
     filter(raceYear == 2014) %>%
     select(raceYear, State, district_num, district_id, RepVotes, DemVotes) %>%
   # summarize party vote share by state
@@ -131,14 +145,47 @@ R_2014 <- h %>%
 # install.packages('plot_usmap')
 library(usmap)
 
-states_map <- usmap::us_map()
-unique(states_map$abbr)
+
 
 # plot
-plot_usmap(data = R_2020, regions = "states", labels=TRUE, values = "R_votemargin_st") + 
-  scale_fill_gradient(low = "white", high = "red", name = "GOP two-party voteshare margin") +
-  theme_void() +labs(title="Republican Popular Vote Share in 2020 US House Elections")
-plot_usmap(data = R_2014, regions = c("states", "state", "counties", "county"), labels = TRUE, values = "D_votemargin_st2") + 
+plot_usmap(data = D_2020, regions = "states", labels=TRUE, values = "D_votemargin_st") + 
+  scale_fill_gradient(low = "white", high = "blue", name = "Dem two-party voteshare margin") +
+  theme_void() +labs(title="Democratic Popular Vote Share in 2020 US House Elections")
+plot_usmap(data = D_2014, regions = c("states", "state", "counties", "county"), labels = TRUE, values = "D_votemargin_st2") + 
   scale_fill_gradient(low = "white", high = "blue", name = "Dem two-party voteshare margin") +
   theme_void() +labs(title="Democratic Popular Vote Share by Countyin 2014 US House Elections")
+```
+```{r, include=TRUE, message=FALSE, warning=FALSE, echo=FALSE, eval=TRUE, fig.align="center"}
+library(tidyverse)
+R_2014 <- h %>%
+    filter(raceYear == 2014) %>%
+    select(raceYear, State, district_num, district_id, RepVotes, DemVotes) %>%
+  # summarize party vote share by state
+    group_by(State) %>%
+    group_by(district_num) %>% 
+  # mutate Rep vote margin by state %>%
+    mutate(R_votemargin_district = (sum(RepVotes))/
+                            sum(RepVotes + DemVotes),
+           D_votemargin_district = (sum(DemVotes))/
+                            sum(RepVotes + DemVotes)) %>%
+    rename(DISTRICT = district_num) %>% 
+    rename(STATENAME = State)
+cd114 <- get_congress_map(114)
+cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
+cd114 <- cd114 %>% left_join(R_2014, by=c("DISTRICT", "STATENAME"))
+USMap_simp <- rmapshaper::ms_simplify(cd114, keep = 0.01)
+USMap <- ggplot() +
+  geom_sf(data=USMap_simp,aes(fill=R_votemargin_district),
+          inherit.aes=FALSE,alpha=0.9) +
+  scale_fill_gradient(low = "white", high = "black", limits=c(0,90)) +
+  theme_void() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+fig2 <- ggplotly(USMap)
+fig2
+```
 ```
