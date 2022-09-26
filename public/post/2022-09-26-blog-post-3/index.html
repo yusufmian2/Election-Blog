@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en-us">
+    <head>
+		
+		
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		<title>Blog Post 3 &middot; My New Hugo Site</title>
+
+		
+		<link rel="stylesheet" href="/css/style.css">
+		<link rel="stylesheet" href="/css/fonts.css">
+		
+		<link rel="icon" href="/favicon.ico"/>
+		<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+		<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+
+		
+		<link href="" rel="alternate" type="application/rss+xml" title="My New Hugo Site" />
+
+		<script src="/js/darkmode.js"></script>
+	</head>
+
+    <body>
+        		<nav class="nav">
+			<div class="nav-container">
+				<a href="/">
+					
+						<h2 class="nav-title">My New Hugo Site</h2>
+					
+				</a>
+				<ul>
+    
+    
+</ul>
+			</div>
+		</nav>
+
+        <div id="darkModeToggle" onclick="toggleDarkMode()">
+  &#9680; 
+</div>
+
+        
+
+<main>
+	
+
+
+        <div class="post">
+		<div class="post-info">
+    <span>Written by</span>
+        Yusuf Mian
+        <br>
+        <span>on&nbsp;</span><time datetime="2022-09-26 00:00:00 &#43;0000 UTC">September 26, 2022</time>
+</div>
+
+		<h1 class="post-title">Blog Post 3</h1>
+<div class="post-line"></div>
+
+		
+
+		
+
+
+<div id="polling-trends-and-predicting-elections" class="section level2">
+<h2>Polling trends and predicting elections</h2>
+<p><br>
+This week, we will be diving into polling and using polling along with the economic fundamentals from last week to update my model and predicitons for the 2022 elections. However, before I get into the choices I have made in my own predictions for the election, I am going to be taking a deeper dive into some of the decisions that went into two of the most well known models that exist for election predictions. These models are from Nate Silver, who is the data guru behind the well known site 538, and G. Elliott Morris, who is a data scientist that works on the election models for the Economist.
+<br>
+First, we are going to start with Nate Silver. Silver has become very well known for his forecasting models for House, Senate, and Presidential elections as well as his very easy to understand graphics which many in the media rely on for updating the elections before they happen.
+<br>
+Silver, who has pointed out that his model has largely been the same type of model since 2018, for House, Senate, and even Gubernatorial elections, has consistency in his approach. In the most advanced model, 538 uses polling, economic fundamentals, expert forecasts (from organizations like Cook Political which give ratings for every district), and a system 538 has in their modeling to model districts that have little polling by comparing to similar districts. This is important to note because while our model may not have all of the features of a leading prediction like 538, at its heart we both are using some form of polling and both our using some form of economic fundamentals.
+Silver is also very careful to weight polls. 538 takes out some polls from their model and weight polls based on recency, sample size, and pollster rating. Polls are considered more important as we approach the election. Finally, Silver also makes an interesting note that in recent years, partisanship has become more important than fundamentals in their model. In other words, Silver is articulating that over time, economic fundamentals to him have become less useful to predicting elections. This is something I carefully considered in how to value the fundamentals that I put into my model.</p>
+<p><br>
+Next, I will briefly be comparing this approach to the Economist’s model. The Economist states that their single best indicator is the generic ballot. Similarly, to the Economist, the generic ballot is the poll that I have added to my model this week. However, the Economist also relies on other polls for specific district races. The Economist also states that their fundamentals model includes considering how left or right leaning seats are based on previous elections. This is similar to Silver, who stated that he also chosen to start thinking about partisanship more than just economic fundamentals for his model. The Economist also uses campaign contributions to make these assesments about partisanship. Finally, they state that a part of getting closer to the final predictions is using district wide polls to re-assess their predictions from the other factors and get closer to the final result.
+<br>
+Now that we have taken a look at the two professional models, I will be getting a bit into my own model for this week. The biggest update for this week is that the model includes polling into the prediction. As both Silver and the Economist seem to hint at, fundamentals, particularly economic fundamentals, might not be the best way to predict outcomes. Last week, I certainly saw that economic fundamentals was not a great way to get a prediction based on my own results. Based on the work of Silver, I have also chosen to include partisanship more into my model by factoring previous election result into the model as well.</p>
+<pre><code>## 
+## Polling Model
+## ===============================================
+##                         Dependent variable:    
+##                     ---------------------------
+##                         voteshareDifference    
+## -----------------------------------------------
+## mean_poll                    0.569***          
+##                               (0.016)          
+##                                                
+## Constant                     -0.483***         
+##                               (0.134)          
+##                                                
+## -----------------------------------------------
+## Observations                   2,169           
+## R2                             0.381           
+## Adjusted R2                    0.381           
+## Residual Std. Error      4.875 (df = 2167)     
+## F Statistic         1,333.683*** (df = 1; 2167)
+## ===============================================
+## Note:               *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
+<pre><code>## 
+## Fundamentals Model
+## ===============================================
+##                         Dependent variable:    
+##                     ---------------------------
+##                         voteshareDifference    
+## -----------------------------------------------
+## GDP_growth_qt                -0.056***         
+##                               (0.018)          
+##                                                
+## Constant                     5.823***          
+##                               (1.785)          
+##                                                
+## -----------------------------------------------
+## Observations                    18             
+## R2                             0.371           
+## Adjusted R2                    0.331           
+## Residual Std. Error       6.478 (df = 16)      
+## F Statistic            9.418*** (df = 1; 16)   
+## ===============================================
+## Note:               *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
+<p>To briefly explain the updates I have made to my prediction model this week - as follows. <br>
+For the polling aspect of my model - I compared the generic ballot, which Silver and The Economist model seem to rely on. I am using the generic ballots available from previous years and comparing the differences in margins in the generic ballots to the difference in two party vote shares in the election. For the 2022 election, I limited the polls to the beginning of August, or about 90 days before the election, because there were so many polls available by restricting this, they should be more meaningful as Silver seems to believe. I may revist this as we approach the election. Next, my fundamentals model is rather straightforward, in that it compares the difference in GDP in Quarter 5, or in the beginning of the election year. I considered using Quarter 6, but Quarter 5 seemed to be slightly more predictive. However, as I found last week and Silver and the Economist stressed, fundamentals are not as important and so I weighted them a lot less in my model. Finally, to account for partisanship and previous elections, I took an average of the previous 3 house elections, which included one year with GOP control, one Dem wave, and one close election. This will definitely be explored in the coming weeks to make this aspect of the model better, but for now it is what I am using to represent this aspect of the model. The weights I used were 40 percent polling, 40 percent partisanship/previous election results, and 20 percent fundamentals.</p>
+<pre><code>##                                          
+## Overall Prediction             -0.3091520
+## Fundamentals Prediction       -15.8203739
+## Polling Prediction              0.6112299
+## Previous Elections Prediction   6.5260771</code></pre>
+<pre><code>## 
+## Predictions (Democratic Predicted Margin of Win
+## =====================================
+##                                      
+## -------------------------------------
+## Overall Prediction            -0.309 
+## Fundamentals Prediction       -15.820
+## Polling Prediction             0.611 
+## Previous Elections Prediction  6.526 
+## -------------------------------------</code></pre>
+</div>
+
+
+		
+	</div>
+
+	<div class="pagination">
+		<a href="/post/2022-09-19-blog-post-2/" class="left arrow">&#8592;</a>
+
+		<a href="#" class="top">Top</a>
+	</div>
+</main>
+
+
+        		<footer>
+			
+			<span>
+			&copy; <time datetime="2022-09-26 09:48:41.395014 -0400 EDT m=&#43;0.136195585">2022</time> . Made with <a href='https://gohugo.io'>Hugo</a> using the <a href='https://github.com/EmielH/tale-hugo/'>Tale</a> theme.
+			</span>
+		</footer>
+
+    </body>
+</html>
