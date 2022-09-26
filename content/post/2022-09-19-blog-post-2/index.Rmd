@@ -1,0 +1,167 @@
+---
+title: Blog Post 2
+author: Yusuf Mian
+date: '2022-09-19'
+slug: []
+categories: []
+tags: []
+summary: "This is the second post of a series of weekly blog posts leading into the 2022 Midterm elections!"
+---
+## Economic trends in popular vote share of House elections
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(ggplot2)
+library(tidyverse)
+library(readr)
+setwd("~/Desktop/Election Analysis/Election-Blog")
+popvote_df <- read.csv("house_popvote_seats.csv") 
+unemployment <- read.csv("unemployment_national_quarterly_final.csv")
+unemploymentState <- read.csv("unemployment_state_monthly.csv")
+                                                   
+# load GDP data by quarter
+economy_df <- read.csv("GDP_quarterly.csv")
+
+# merge
+dat <- left_join(economy_df, popvote_df, by = 'year')
+
+# drop NAs (only election years)
+dat <- dat %>%
+  drop_na()
+
+# new df
+dat2 <- dat %>% 
+    select('year', 'winner_party', 'H_incumbent_party', 'H_incumbent_party_majorvote_pct', 
+           'quarter_cycle', 'GDP_growth_pct') %>%
+    filter(quarter_cycle == 5)  
+rdi_df <- read.csv("RDI_quarterly.csv")
+popvote_df <- read.csv("house_popvote_seats.csv")
+
+# merge    
+data <- left_join(rdi_df, popvote_df, by = 'year')
+
+# drop NAs (only election years)
+data <- data %>%
+  drop_na()
+
+# new df
+data2 <- data %>% 
+    select('year', 'winner_party', 'H_incumbent_party', 'H_incumbent_party_majorvote_pct', 
+           'quarter_cycle', 'DSPIC_change_pct') %>%
+    filter(quarter_cycle == 5) 
+data6 <- data %>% 
+    select('year', 'winner_party', 'H_incumbent_party', 'H_incumbent_party_majorvote_pct', 
+           'quarter_cycle', 'DSPIC_change_pct') %>%
+    filter(quarter_cycle == 8) 
+        
+# plot 
+
+```
+```{r}
+data3 <- data %>% 
+    select('year', 'winner_party', 'H_incumbent_party', 'H_incumbent_party_majorvote_pct', 
+           'quarter_cycle', 'DSPIC_change_pct') %>%
+    filter(quarter_cycle==8 & DSPIC_change_pct<0)
+
+```
+```{r}
+data4 <- data2 %>% 
+  filter(year==c("1960", "1970", "1974", "1990", "2020"))
+data5 <- data2 %>% 
+  filter(year!=c("1960", "1970", "1974", "1990", "2020"))
+```
+<br>
+## Background
+<br>
+Today we will be exploring using economic models to attempt to predict popular vote share in United States House elections. The inspiration behind the models we will be looking at comes from the work of political scientists Achen and Bartels who looked into how voters vote retrospectively to either reward and punish leaders for economic performances from during their tenure. It also comes from the work of Healey and Lenz who looked at similar trends, specifically focused on how voters substitute the last year or even quarter of a term as a means to judge the entire tenure. In other words, the work of multiple political scientits has already shown that the economic sucess, particularly in the final months before an election, can help predict the results of an election. However, it is important to remember that most of this work was related to Presidential elections.
+<br>
+We will be attempting to take a deeper dive into using economic models to vote vote share in the House elections, which are obviously different from presidential elections. In all of my economic models, I choose to use Readl Disposable Income, or RDI. This simply represents the "extra money" that people have in their pocket books and in my estimations of how the average voter views the economy and their own economic gains, RDI is the best way to measure this. I almost immediately rejected the idea of simply looking at the change in RDI from the second to last to last quarter before an election. While this is the type of model which might have been used to predict the presidential elections from RDI, I saw low strength in this model and decided that if we were going to have an economic model with low accuracy and over-fitting problems, than I might as well take a deeper dive into testing more unique aspects of RDI.
+<br>
+The first aspect of RDI I choose to look at was the change into Quarter 5, which is the first Quarter of the election year (Example: The firt quarter of 2022). To look at the Quarter 5 change, I broke the data into two categories- one where the Quarter 8 changes (the Quarter immediately prior to the election) were negative and one were they were positive. Unfortunately, there happended to be a few enough Quarter 8s with negative gains that we will be primary be looking at when Quarter 8 has positive gains. While we don't have this data yet for this election year, fortunately, it is very possible that the gains in RDI into Quarter 8 for 2022 will be positive because the economy (including RDI) has been down recently, particularly earlier this year, and it seems that RDI might improve as prices go down (particularly gas prices).
+<br>
+As you can see in the output below as well as the plot, this model predicts that in years where Quarter 8 has positive RDI change, as we increase the change in RDI in Quarter 5, we decrease the predicted vote share. While this does not make a lot sense upon first look, my first interpretation of this is that if voters had bigger gains earlier in the term, they may be looking for bigger gains later and if those gains are for whatever reason they may punish the incumbent party. Additionally, as Healy and Lenz discussed in their work, voters have short term memories. As a result of this, while they may remember big gains from the past, they may not attribute it to the incumbent party when it comes time to down. Finally, we should take note of the small R-Squared value and realize that this is also not a great model for predicting house vote share. R-Squared helps us interpret how much of the variance is explained by the independent variable. It goes from 0 to 1 and so R-Squared values, which I will be using throughout this blog, are what I am using to make judgments on how good models are.
+```{r}
+lm_rdi2 <- lm(H_incumbent_party_majorvote_pct ~ DSPIC_change_pct,  data = data5)
+summary(lm_rdi2)
+data7 <- data6 %>% 
+  filter(year %% 4!=0)
+         
+data5 %>%
+   ggplot(aes(x=DSPIC_change_pct, y=H_incumbent_party_majorvote_pct,
+              label=year)) + 
+     geom_text(size = 4) +
+     geom_smooth(method="lm", formula = y ~ x) +
+     geom_hline(yintercept=52.34, lty=2) +
+     geom_vline(xintercept=-0.5, lty=2) + # median
+     xlab("Q5-Q4 pct change RDI (X)") +
+     ylab("Incumbent party PV (Y)") +
+     theme_bw() +
+     ggtitle("Incumbent Part PV Share vs Q5/Q4 RDI Change In Q8 Positive Change Years") + 
+     theme(axis.text = element_text(size = 15),
+           axis.title = element_text(size = 15),
+           plot.title = element_text(size = 15))
+```
+
+<br>
+The next decision that I made was to return to looking at the Quarter 8 immediately before the election and adjusting that aspect of the model. To do this, I filtered the model to only include midterm election years. This created a definitely improved model, with an r-squared value of 0.47, meaning maybe we had found some real variation. The more interesting part of this finding, however, was that it showed that in midterm years, there was a significant decrease in popular vote share as the Quarter 8 RDI percent change increased. 
+```{r}
+lm_rdi3 <-
+  lm(H_incumbent_party_majorvote_pct ~ DSPIC_change_pct,  data = data7)
+summary(lm_rdi3)
+data7 %>%
+   ggplot(aes(x=DSPIC_change_pct, y=H_incumbent_party_majorvote_pct,
+              label=year)) + 
+     geom_text(size = 4) +
+     geom_smooth(method="lm", formula = y ~ x) +
+     geom_hline(yintercept=53.917, lty=2) +
+     geom_vline(xintercept=-1, lty=2) + # median
+     xlab("Q8-Q7 pct change RDI (X)") +
+     ylab("Incumbent party PV (Y)") +
+     theme_bw() +
+     ggtitle("Incumbent Part PV Share vs Q8/Q7 RDI Change In Midterm Years") + 
+     theme(axis.text = element_text(size = 15),
+           axis.title = element_text(size = 15),
+           plot.title = element_text(size = 15))
+
+```
+<br>
+We should make note of the fact that this new model still isn't perfect even with a slightly higher R-Squard. As can be seen in the plot below, while the incumbent party vote share has major variance, sometimes very high and sometimes low, the prediction sort of runs through the middle, and is sometimes right, but sometimes very positive or negative residuals which may just be averaging each other out. 
+```{r}
+plot(data7$year, data7$H_incumbent_party_majorvote_pct, 
+      type="l",
+      main="true Y (line), predicted Y (dot) for each year")
+ points(data5$year, predict(lm_rdi2, data5))
+```
+<br>
+Ultimately, the conclusion from the work I have done in attempting all of the models I have tried is that there is unfortunately not an efficient way for us to accurately predict midterm/House election results. Through all of the models I tried to create, many not shown, I saw repeatedly very very low R-Squared numbers. For us to have a model where the in-sample data is that uncertain, we can not use it to make accurate conclusions. Fortunately, this finding is supported by the work of other political scientists who might agree that economic models alone don't accurately predict elections. This on top of the fact that a lot of the existing models based on economic factors alone are usually for Presidential elections on top of all of the low predictivtity I saw in today's models makes me comfortable with this conclusion.
+<br>
+Finally, we can use our model to make a prediction (with the caveat established above). The first model, which we established isn't a great model, tells us that if Quarter 8 has a positive change in RDI, the Democrats should pick up around 53.48 percent of the popular vote share. Unfortunately, our model that was slightly more predictive, which involves using Quater 8 is of no use to us because Quarter 8 has not happened. Therefore, the prediction we were able to come up with should not be taken too accurately. As I established above, it is my beliefe that the economic models we attempted to build today only using economic variables versus vote share (like RDI, etc) are not highly predictive.
+```{r}
+rdi_new <- rdi_df %>%
+    subset(year == 2022 & quarter_cycle == 5) %>%
+    select(DSPIC_change_pct)
+predict(lm_rdi2, rdi_new)
+```
+<br>
+Next, we can take a quick look at unemployment data. I was skeptical of having any success with this model because previous work of Wright which came to the conclusion that changes in unemployment do not necessarily predict elections. His findings were that unemployment was not a heuristic thing that impacted Presidential elections because it always benefited Democrats. That being said, as I expected, the brief work I did with unemployment again showed very little sensitivity in the model trying to predict House elections with unemployment data. In this case, even filtering for Democrats, in the second linear model seen below, there was a very very low R-Squared value in a model showing small increases in populare vote share with increass in unemployment prior to the election. The first linear model also predicts small increases for all incumbent parties as unemployment increases, also though a bad model with low R-Squared. Just as I had predicted, unemployment, especially for house elections, is not a good way to predict future elections.
+
+```{r}
+unemploymentState <-unemploymentState%>% 
+  drop_na()
+unemploymentState2 <- unemploymentState %>% 
+  rename(year= Year) %>% 
+  group_by (year & Month) %>%
+  mutate(nationalMonthlyAverage = mean(Unemployed_prct))
+unemploymentState3 <- left_join(unemploymentState2, popvote_df, by = "year")
+unemploymentState4 <- unemploymentState3 %>% 
+ select('year', 'winner_party', 'H_incumbent_party', 'H_incumbent_party_majorvote_pct', 
+           "Month", "Unemployed_prct") %>% 
+  filter(Month == c(10)& year %%2==0) 
+unemploymentState5 <- unemploymentState4 %>% 
+  filter(H_incumbent_party=="D") 
+```
+```{r}
+lm_unemployment <- lm(H_incumbent_party_majorvote_pct ~ Unemployed_prct,  data = unemploymentState4)
+summary(lm_unemployment)
+lm_unemployment2 <- lm(H_incumbent_party_majorvote_pct ~ Unemployed_prct,  data = unemploymentState5)
+summary(lm_unemployment2)
+```
