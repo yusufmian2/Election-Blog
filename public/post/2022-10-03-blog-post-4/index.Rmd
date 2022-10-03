@@ -160,12 +160,13 @@ fig3
 ```  
 
 <br>
-Now for my changes to my model for the week, I used the same model as last week, except now that we are using expert ratings and also I have gotten rid of the recent elections aspect of the model that was previously meant to account for the current trends of the district and replaced it with the Distric Cook Partisan Voting Index (PVI), which is more accurate. I did expert ratings in two ways - the first was using the 538 expert predictions. Their highest level model, which includes expert predictions, still gives a predicted voteshare outcome. Unfortunately, it felt a bit like cheating to use their model in mine, so I have a "non-cheating model" in which I use simply 2022 predictions and converted them into predicted vote share difference. I was using the scale where a tossup is +/2.5 percent either way, a lean Dem is +2.5 to 7.5, a likely Dem is 7.5 to 12.5 and a Solid dem is 12.5 to 17.5 and up. Then from here, I took the middle of those ranges and created a formula where the mean rating*-5 + 20 is the predicted vote share difference for the Democrats. While this is how I choose to convert the ratings to my model, you can disagree which is why I am providing this for transparency. 
+Now for my changes to my model for the week, I used the same model as last week, except now that we are using expert ratings and also I have gotten rid of the recent elections aspect of the model that was previously meant to account for the current trends of the district and replaced it with the Distric Cook Partisan Voting Index (PVI), which is more accurate. I did expert ratings in two ways - the first was using the 538 expert predictions. Their highest level model, which includes expert predictions, still gives a predicted voteshare outcome. Unfortunately, it felt a bit like cheating to use their model in mine, so I ended up not using this way and instead have a "non-cheating model" in which I use simply 2022 predictions from experts on a Safe D to Safe R scale and converted them into predicted vote share difference. I was using the scale where a tossup is +/2.5 percent either way, a lean Dem is +2.5 to 7.5, a likely Dem is 7.5 to 12.5 and a Solid Dem is 12.5 to 17.5 and up. Then from here, I took the middle of those ranges and created a formula where the mean rating*-5 + 20 is the predicted vote share difference for the Democrats. While this is how I choose to convert the ratings to my model, you can disagree which is why I am providing this for transparency. 
 <br>
 For the model, I am using the weights such that Polling, PVI, and Expert Predictions are equally important but each more important than the economic fundamentals model. As I have discussed in previous weeks, this is because I believe the economic model to be less important, but still believe all the other aspects as equally important.
 <br>
 Below, you can see the expert model along with the total model. I chose not to add any updates based on incumbency because in my opinion other aspects of the model, like polling, already account for incumbency. It would be redundant and potentially cause too much of the same variable in the model to add a regression with only incumbency. Furthermore, as Brown even talks about in his reading, it is already questionable of how much voters really care about incumbency. 
 ```{r }
+library(stargazer)
 expertratingsPrediction <- expert_ratings %>% 
   mutate(demVoteShare = (-5*avg_rating)+20)
 pviPrediction <- mean(pvi$PVI_num)
@@ -174,10 +175,8 @@ house538deluxe <- house538 %>%
   filter(expression=="_deluxe") %>%
   mutate(votesharedifference = voteshare_mean_D1 - voteshare_mean_R1)
 expertModel <- mean(house538deluxe$votesharedifference)
-expertPrediction
-expertModel
 finalPrediction <-(0.266 * pollingDemPrediction) + (0.266 * pviPrediction) +  (0.266 * expertPrediction)+ (0.15 * gdpPrediction)
-finalPredictionCheating <-(0.266 * pollingDemPrediction) + (0.266 * expertModel) + (0.266 * pviPrediction)+ (0.15 * gdpPrediction)
-finalPrediction
-finalPredictionCheating
+table2 <- matrix(c(finalPrediction, pviPrediction, expertPrediction, pollingDemPrediction, gdpPrediction), ncol=1, byrow=TRUE)
+rownames(table2) <- c('Overall Prediction', 'PVI (0.266)', "Expert Prediction(0.266)", "Polling Prediction (0.266", "Economy Prediction (0.15)")
+stargazer(table2, title="Predictions (Democratic Predicted Margin of Win)", type="text")
 ```
