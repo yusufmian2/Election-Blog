@@ -1,0 +1,183 @@
+---
+title: Blog Post 4
+author: Yusuf Mian
+date: '2022-10-03'
+slug: []
+categories: []
+tags: []
+---
+---
+title: Blog Post 4
+author: ''
+date: '2022-10-03'
+slug: []
+categories: []
+tags: []
+---
+## Week 4 - Incumbency and Expert Predictions
+<br>
+For this week's blog, I am going to be looking into the reliability of expert predictions. Expert predictions have become more prevalent over time, but today we are going to be looking at expert predictions from the most recent midterm elections. To do so, we will be taking a deep dive into expert predictions in the 2018 midterm elections through visualization. Because expert predictions are at the district level, I took a look at expert predictions at the district level in the mapping.
+<br>
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+setwd("/Users/yusufmian/Desktop/Election Analysis/Election-Blog")
+library(tidyverse); library(knitr)
+house538 <- read.csv("house_district_toplines_2022.csv")
+expert_ratings <- read.csv("expert_rating.csv")
+pvi <- read.csv("PVI_share.csv")
+ratings_2018 <- read.csv("2018_ratings_share.csv")
+library(tidyverse)
+library(stargazer)
+setwd("/Users/yusufmian/Desktop/Election Analysis/Election-Blog")
+generic2022 <- read.csv("538_generic_poll_2022.csv")
+generic2022_select <- generic2022 %>% 
+  select("pollster", "samplesize", "dem", "rep") %>% 
+  rename("sample_size" = "samplesize") %>% 
+  mutate(year=2022)
+generic1942 <- read.csv("GenericPolls1942_2020.csv")
+generic1942select <- generic1942 %>% 
+  select("pollster", "sample_size", "dem", "rep", "year")
+genericballot <- full_join(generic2022_select, generic1942select)
+popularvote <- read.csv("H_popvote_df_fin.csv")
+genericballotVote <- left_join(popularvote, genericballot,  by="year")
+rdi_df <- read.csv("rdi_quarterly.csv")
+gdp_df <- read.csv("GDP_quarterly.csv")
+housevoteshare <- read.csv("house_popvote_seats.csv")
+econdata <- left_join ( housevoteshare, gdp_df, by="year")
+genericballot2 <- genericballot %>% 
+  mutate(poll_differenceDem=dem-rep)
+genericballot3 <- genericballot2 %>% 
+   group_by(year) %>% 
+  mutate(mean_poll = mean(poll_differenceDem))
+demVote <- genericballotVote %>%
+  filter(party=="D") %>% 
+  mutate(voteshareDifference = majorvote_pct- (100-majorvote_pct), poll_differenceDem=dem-rep)
+demVote <- demVote %>% 
+  group_by(year) %>% 
+  mutate(mean_poll = mean(poll_differenceDem))
+repVote <- genericballotVote %>%
+  filter(party=="R") %>% 
+  mutate(voteshareDifference = majorvote_pct- (100-majorvote_pct), poll_differenceRep=rep-dem)
+repVote2 <- repVote %>%  
+  group_by(year) %>% 
+  mutate(mean_poll = mean(poll_differenceRep))
+lm_dem_poll <- lm(voteshareDifference ~ mean_poll, data=demVote)
+lm_dem_poll2 <- lm(voteshareDifference ~ poll_differenceDem, data=demVote)
+econ <- econdata %>% 
+  filter(year%%4!=0, quarter_cycle=="5") %>% 
+  mutate(voteshareDifference = H_incumbent_party_majorvote_pct- (100-H_incumbent_party_majorvote_pct))
+lm_gdp <- lm(voteshareDifference ~ GDP_growth_qt, data=econ)
+demVote3 <- genericballotVote %>%
+  filter(year>=2016, party=="D") %>% 
+  summarize(meanDem = mean(majorvote_pct))
+repVote3 <- repVote %>% 
+  filter(year>=2016) %>% 
+  summarize(meanRep = mean(majorvote_pct))
+difference2016 <- demVote3$meanDem - repVote3$meanRep
+demVotenew <- generic2022 [-c(1:929),] %>% 
+  mutate(poll_differenceDem=dem-rep)
+demVotenewclean <- demVotenew %>% 
+  mutate(mean_poll=mean(poll_differenceDem))
+gdpVotenew <-gdp_df %>% 
+  filter(year==2022, quarter_cycle=="5") %>% 
+  select(GDP_growth_qt)
+gdpPrediction <- predict(lm_gdp, gdpVotenew)
+pollingDemPrediction <- mean(predict(lm_dem_poll, demVotenewclean))
+```
+As you will see below, the 2018 actual results can be visualized along with the predictions by district. The predictions are put on a 7 point scale going from 1 being most strongly Democratic to 7 being most strongly Republican. In other words, a district which is dark on the map showing a high Republican vote share should also be dark on the prediction map if the predictors were confident about the results of that district being safely Democratic. You are able to Zoom in and look at any of the districts, but for the purspose of this blog, I will be specifically looking at Michigan, which I know is home to some Safe D/R districts and some critical tossups.
+<br>
+As you will see if you look closely, the experts are pretty good predictors. For the most part, in the Districts that were very safe Democratic or Republican wins based on the final result, the experts had a very low or high score to match that up. In general, this is why the predictions are good - there is a decent number of uncompetitive districts and it is easy to predict those. However, what I noticed is that even in the tossup districts, which were rather close to the tossup number of 4, the experts had some inkling based on the fact that the average was higher or lower than 4. In multiple tossup districts that Democrats won, I saw average ratings of around 3 or in between 3 and 4. This means some of the experts were willing to not just use tossup as a copout of sorts and had correctly predicted the outcome. Particularly in a Democratic expected wave year, this makes sense that experts were able to do this. In the same way, if we looked at 2022, there would be experts putting some tossup districts in the lean R category because in this environment, the Republicans should win more tossups if they are to maintain control of the House as expected. Finally, unfortunately the predictions were not there for the states w/ 1 district or an At Large district, so ignore the light color of those.
+
+```{r}
+require(tidyverse)
+require(ggplot2)
+require(sf)
+setwd("~/Desktop/Election Analysis/Election-Blog")
+popvote_df <- read.csv("house nationwide vote and seat share by party 1948-2020.csv")
+house_party_vote_share_by_district_1948_2020 <- read.csv("house party vote share by district 1948-2020.csv")
+h <- house_party_vote_share_by_district_1948_2020
+get_congress_map <- function(cong=116) {
+  tmp_file <- tempfile()
+  tmp_dir  <- tempdir()
+  zp <- sprintf("https://cdmaps.polisci.ucla.edu/shp/districts114.zip",cong)
+  download.file(zp, tmp_file)
+  unzip(zipfile = tmp_file, exdir = tmp_dir)
+  fpath <- paste(tmp_dir, sprintf("districtShapes/districts114.shp",cong), sep = "/")
+  st_read(fpath, quiet=TRUE)
+}
+
+cd116 <- get_congress_map(116)
+
+```
+```{r}
+library(plotly)
+R_2018 <- h %>%
+    filter(raceYear == 2018) %>%
+    select(raceYear, State, district_num, district_id, RepVotesMajorPercent) %>%
+  # summarize party vote share by state
+  # mutate Rep vote margin by state %>%
+    rename(DISTRICT = district_num) %>% 
+    rename(STATENAME = State) %>% 
+    group_by(STATENAME, DISTRICT)
+
+
+cd116$DISTRICT <- as.numeric(cd116$DISTRICT) 
+cd116New <- left_join(cd116, R_2018, by=c("DISTRICT", "STATENAME"))
+USMap_simp <- rmapshaper::ms_simplify(cd116New, keep = 0.01)
+USMap <- ggplot() +
+  geom_sf(data=USMap_simp,aes(fill=RepVotesMajorPercent),
+          inherit.aes=FALSE,alpha=0.9) +
+  scale_fill_gradient(low = "white", high = "black", limits=c(0,90)) +ggtitle("Entire US- Republican Popular Vote Share by Congressional District") + coord_sf(xlim = c(-172.27, -66.57), ylim = c(18.55, 71.23), expand = FALSE) +
+  theme_void()
+fig2 <- ggplotly(USMap)
+fig2
+```
+
+```{r}
+library(sf)
+h2 <- h %>% 
+  filter(raceYear==2018) %>% 
+  select(State, raceYear, district_num, CD) %>% 
+  rename(District=CD)
+ratings_2018join <-left_join(h2, ratings_2018, by="District")
+ratings_2018join[is.na(ratings_2018join)] = 0
+
+expertratings2 <- ratings_2018join %>%  
+  rename(STATENAME= State, DISTRICT = district_num) %>% 
+  select(STATENAME, DISTRICT, avg) %>% 
+  group_by(STATENAME, DISTRICT)
+cd116ratings <- get_congress_map(116)
+cd116ratings$DISTRICT <- as.numeric(cd116ratings$DISTRICT)
+cd116ratings2 <- left_join(cd116ratings, expertratings2, by=c("DISTRICT", "STATENAME"))
+USMap_simp2 <- rmapshaper::ms_simplify(cd116ratings2, keep = 0.01)
+USMap2 <- ggplot() +
+  geom_sf(data=USMap_simp2,aes(fill=avg),
+          inherit.aes=FALSE,alpha=0.9) +
+  scale_fill_gradient(low = "white", high = "black", limits=c(0,8)) +ggtitle("Entire US- Expert by Congressional District") + coord_sf(xlim = c(-172.27, -66.57), ylim = c(18.55, 71.23), expand = FALSE) +
+  theme_void()
+fig3 <- ggplotly(USMap2)
+fig3
+```  
+
+<br>
+Now for my changes to my model for the week, I used the same model as last week, except now that we are using expert ratings and also I have gotten rid of the recent elections aspect of the model that was previously meant to account for the current trends of the district and replaced it with the Distric Cook Partisan Voting Index (PVI), which is more accurate. I did expert ratings in two ways - the first was using the 538 expert predictions. Their highest level model, which includes expert predictions, still gives a predicted voteshare outcome. Unfortunately, it felt a bit like cheating to use their model in mine, so I have a "non-cheating model" in which I use simply 2022 predictions and converted them into predicted vote share difference. I was using the scale where a tossup is +/2.5 percent either way, a lean Dem is +2.5 to 7.5, a likely Dem is 7.5 to 12.5 and a Solid dem is 12.5 to 17.5 and up. Then from here, I took the middle of those ranges and created a formula where the mean rating*-5 + 20 is the predicted vote share difference for the Democrats. While this is how I choose to convert the ratings to my model, you can disagree which is why I am providing this for transparency. 
+<br>
+For the model, I am using the weights such that Polling, PVI, and Expert Predictions are equally important but each more important than the economic fundamentals model. As I have discussed in previous weeks, this is because I believe the economic model to be less important, but still believe all the other aspects as equally important.
+<br>
+Below, you can see the expert model along with the total model. I chose not to add any updates based on incumbency because in my opinion other aspects of the model, like polling, already account for incumbency. It would be redundant and potentially cause too much of the same variable in the model to add a regression with only incumbency. Furthermore, as Brown even talks about in his reading, it is already questionable of how much voters really care about incumbency. 
+```{r }
+expertratingsPrediction <- expert_ratings %>% 
+  mutate(demVoteShare = (-5*avg_rating)+20)
+pviPrediction <- mean(pvi$PVI_num)
+expertPrediction <- mean(expertratingsPrediction$demVoteShare)
+house538deluxe <- house538 %>% 
+  filter(expression=="_deluxe") %>%
+  mutate(votesharedifference = voteshare_mean_D1 - voteshare_mean_R1)
+expertModel <- mean(house538deluxe$votesharedifference)
+expertPrediction
+expertModel
+finalPrediction <-(0.266 * pollingDemPrediction) + (0.266 * pviPrediction) +  (0.266 * expertPrediction)+ (0.15 * gdpPrediction)
+finalPredictionCheating <-(0.266 * pollingDemPrediction) + (0.266 * expertModel) + (0.266 * pviPrediction)+ (0.15 * gdpPrediction)
+finalPrediction
+finalPredictionCheating
+```
