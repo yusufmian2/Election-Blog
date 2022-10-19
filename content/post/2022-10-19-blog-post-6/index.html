@@ -1,0 +1,103 @@
+---
+title: Blog Post 6
+author: Yusuf Mian
+date: '2022-10-19'
+slug: []
+categories: []
+tags: []
+---
+
+
+
+<div id="the-ground-game" class="section level2">
+<h2>The Ground Game</h2>
+<p><br>
+This week, we will delving into the ground game. To do this, I will be looking at turnout mostly along with some other aspects as well as talking about my model.
+<br></p>
+<p>The first thing I wanted to explore with turnout was to consider the common “myth” in political science that higher turnout benefits Democrats. To do this, I took a look at the Citizen Voting Age Population (CVAP) data available by district from 2012 to 2020 and compared it to the actual turnout. I chose to calculate turnout by simply adding the total votes for Democrats and Republicans. While this does not account for third party voters, the reason I am using this as turnout is both because of available data and because my model considers only Democratic and Republican voters so as a relative comparison I found this appropriate. That being said, this is potentially a challenge of the model.
+<br></p>
+<p>As you can see in the first model below, turnout did not have any meaningful prediction of Democratic Predicted Vote Share. The model said with no statistical signifcance that there would be a small increase in Democratic Vote Share as turnout increased, but as you can see, the R-Squared and Adjusted R-squared are very low and the model does not seem to have much predictive power. I considered using dummy values of potential turnout for 2022 to come up with some predictions, but I opted not do this because the model had such little predictive power. For this reason, I also will NOT be using turnout in my National or District level model. Part of the reason I think the model was so poor is because of the lack of data. However, I also think that turnout is subject to the environment and does not necessarily benefit one party or the other. If the Democratic base is energized, but the Republican voters turnout in low numbers, the turnout may be low, but Democrats will stil do well. We can think of many analgous scenarios were turnout overall does not help us to understand the actual result of the election.</p>
+<pre><code>## 
+## ===============================================
+##                         Dependent variable:    
+##                     ---------------------------
+##                        DemVotesMajorPercent    
+## -----------------------------------------------
+## turnout                        1.776           
+##                               (3.847)          
+##                                                
+## Constant                     49.623***         
+##                               (2.000)          
+##                                                
+## -----------------------------------------------
+## Observations                   1,801           
+## R2                            0.0001           
+## Adjusted R2                   -0.0004          
+## Residual Std. Error     23.711 (df = 1799)     
+## F Statistic            0.213 (df = 1; 1799)    
+## ===============================================
+## Note:               *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
+<p><br>
+Next, I considered taking a look at if turnout was impacted by the number of ads run. I think this could have been an interesting model for two reasons. First, as we saw last week, ads was not very useful in predicting the results of elections. However, intuitively, it seems like the number of ads run should have some impact on turnout. Even if we can’t use total turnout to predict election results, turnout is still an interesting thing to consider, so we could have some use if we thought the number of ads could predict turnout.
+<br>
+However, as you can see below, again, the adjusted and regular R-squared values are so low that it is very to difficult to fit a model, so I again opted against fitting a model using these factors.</p>
+<pre><code>## 
+## ===============================================
+##                         Dependent variable:    
+##                     ---------------------------
+##                               turnout          
+## -----------------------------------------------
+## districtAdNumber            0.00001***         
+##                              (0.00000)         
+##                                                
+## Constant                     0.485***          
+##                               (0.005)          
+##                                                
+## -----------------------------------------------
+## Observations                    972            
+## R2                             0.016           
+## Adjusted R2                    0.015           
+## Residual Std. Error      0.113 (df = 970)      
+## F Statistic           15.512*** (df = 1; 970)  
+## ===============================================
+## Note:               *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
+<p><br>
+UPDATES TO THE MODEL FOR THE WEEK
+<br>
+I want to get into my model for the week and the changes I made, but I first would like to show one of the things I incorporated into the model for this week. As I discussed a few weeks back, when I attempted to incorporate expert predictions into my national model, I had trouble thinking about how they factored into the eventual national results, so I had to devise a method of converting predictions into vote share outcomes. However, this week, I opted to fit a district level model using district level expert predictions that we have available. Even though we only have 2 years of predictions, becasue each district is a different data point, we actually have lots of predictions. I was able to fit a relatively good model using ratings, which you can see below is both statistically signifcant and has a relatively high R-Squared.
+<br></p>
+<pre><code>## 
+## ===============================================
+##                         Dependent variable:    
+##                     ---------------------------
+##                        DemVotesMajorPercent    
+## -----------------------------------------------
+## avg_rating                   -2.951***         
+##                               (0.078)          
+##                                                
+## Constant                     61.080***         
+##                               (0.353)          
+##                                                
+## -----------------------------------------------
+## Observations                    609            
+## R2                             0.702           
+## Adjusted R2                    0.702           
+## Residual Std. Error      3.260 (df = 607)      
+## F Statistic         1,431.640*** (df = 1; 607) 
+## ===============================================
+## Note:               *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
+<p>For the model this week, I actually made no new changes to the national model, which is still the same as before and can be seen on other blog posts. It predicts a Democratic loss nationally by around 2 percentage points. However, even though I was not adding new data like ads or turnout because I didn’t find that predictive, I am making a new type of model. I am showing my district level model by taking out one district of interest. Later on and after the election, I will be exploring Michigan’s 10th Congressional District and thinking about the events that happened in the campaign. I will be trying to reflect on how my model may have failed to succeeded in predicting this specific race and think about why that was. For this reason, I am showing a district level model which I have put data from MI-10 into to predict the race.
+<br>
+For this district level model, even though it is the same data, there are some new things to consider. First, now that I am using district polls, which are less often and less accurate, the predictivity is not as high for polling in this model as the national model. Second, the economic data is still the national economic data since there is no available at the district level. Third, I am obviously only using the Cook PVI data for this district and not a national average. Finally, as I explained above, I am using the new model for the Expert Prediction and plugging in the 2022 expert predictions for MI-10.</p>
+<pre><code>## 
+## Michigan 10th Congressional District Democratic Predicted Vote Share)
+## ===========================================================
+##                             Prediction        R-Squared    
+## -----------------------------------------------------------
+## Overall Prediction       46.6608870962178                  
+## PVI (0.3)                      48.5              NA        
+## Expert Prediction(0.3)   44.5190965556367 0.702252438403214
+## Polling Prediction (0.2) 50.1175395137293        Low       
+## Economy Prediction (0.2) 43.6582511339047 0.447206543351126
+## -----------------------------------------------------------</code></pre>
+</div>
