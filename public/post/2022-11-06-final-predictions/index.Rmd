@@ -1,0 +1,552 @@
+---
+title: Final Election Predictions
+author: Yusuf Mian
+date: '2022-11-06'
+slug: []
+categories: []
+tags: []
+summary: "We have reached election day! Here are my final predictions"
+---
+
+## Final Predictions
+
+Election day is this Tuesday, November 8th. In this blog, I will first explain each of the components of my predictive election model and then offer my final predictions for this election. 
+<br>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+setwd("/Users/yusufmian/Desktop/Election Analysis/Election-Blog")
+mydata <- readRDS("dobbs_2022.RDS")
+genericballot2022 <- read.csv("genericballot2022.csv")
+library(tidyverse); library(knitr)
+polls2022 <- read.csv("538_house_polls_2022.csv")
+generic1942 <- read.csv("GenericPolls1942_2020.csv")
+genericballot <- generic1942 %>% 
+  select("pollster", "sample_size", "dem", "rep", "year", "days_until_election")
+popularvote <- read.csv("H_popvote_df_fin.csv")
+genericballotVote <- left_join(popularvote, genericballot,  by="year")
+pvi <- read.csv("PVI_share.csv")
+house_party_vote_share_by_district_1948_2020 <- read.csv("house party vote share by district 1948-2020.csv")
+h <- house_party_vote_share_by_district_1948_2020
+polls_df <- read_csv("house_polls_long.csv")
+expert_ratings <- read.csv("expert_rating.csv")
+expert_ratings2022 <- read.csv("expert_rating_2022-10-27.csv")
+ad_creative  <- read_csv("ads_2006_2018 (1).csv")
+library(tidyverse)
+library(stargazer)
+rdi_df <- read.csv("rdi_quarterly.csv")
+gdp_df <- read.csv("GDP_quarterly.csv")
+housevoteshare <- read.csv("house_popvote_seats.csv")
+econdata <- left_join ( housevoteshare, gdp_df, by="year")
+```
+## National Model
+The first component of my model is an Economic Predictive model. One of the challenges, which I went over in previous Blog Posts, was that fitting a model using Economic data was difficult. However, the best model I was able to fit was using the GDPC1. The GDPC1, or Real Gross Domestic Product, is a measure of the actual value of GDP, adjusted for inflation. I am using the Quarter Cycle 5, meaning the first Quarter of the election year. In the table below, I have shown both the in-sample and out of-sample predictivty of the measure. As you can see, the R-Squared value is 0.4472, which is not completely terrible, but also is not necessarily as a high of an R-squared as we may want. This gives us an idea that this measure might not be the best part of the model. As far as the out-of sample predictivty, I tested the model on the 2018 House election. The model predicts the House incumbent two party, which in 2018 was the Republican party,to be 47. The actual result of the 2018 election was the Republicans picking up 46% of the two party vote share. The out of sample test shows the model in the range of where we want to be, so again it indicates that this is not necessarilly a bad model. 
+<br>
+Finally, we can look at the predictions for 2022, which predict the Democrats to only get 44% of the two part vote share, but with a very wide interal ranging from 36 to 52, indicating that there is large uncertainty. 
+```{r}
+econ <- econdata %>% 
+  filter(year%%4!=0, quarter_cycle=="5")
+lm_gdp <- lm(H_incumbent_party_majorvote_pct ~ GDPC1, data=econ)
+gdpVotenew <-gdp_df %>% 
+  filter(year==2022, quarter_cycle=="5") %>% 
+  select(GDPC1)
+gdpPrediction <- predict(lm_gdp, gdpVotenew)
+gdpPredictionInterval <- predict(lm_gdp, gdpVotenew, interval="prediction")
+#Out of Sample Accuracy
+gdpVote2018 <-gdp_df %>% 
+  filter(year==2018, quarter_cycle=="5") %>% 
+  select(GDPC1)
+gdpTestPredictionInterval <- predict(lm_gdp, gdpVote2018, interval="prediction")
+gdpTestPrediction <- predict(lm_gdp, gdpVote2018)
+gdptable <- matrix(c(gdpPrediction, "35.59525 ",  "51.72125",  gdpTestPrediction, "39.38692", "53.81134", "0.4472", "", "" ), ncol=3, byrow=TRUE)
+rownames(gdptable) <- c("Prediction", "2018 Test Prediction", "R-Squared")
+colnames(gdptable) <- c("Prediction", "Lower", "Upper")
+stargazer(gdptable, title="Economic Fundamentals Prediction (House Incumbent Predicted Voteshare)", type="text")
+```
+<br>
+The next aspect of the model is the Generic Ballot. For the Generic Ballot, I made a model which predicts the Democratic predicted Democrat's predicted two-party vote share based on the mean of Generic Poll results for Democrats in the last 100 days of the election. As we can see, the R-Squared is 0.612, which is higher than the Economic part of the model and again it indicates that it is a fairly decent model. In terms of out of sample accuracy, I again tested the model on the 2018 election. The model predicted the Democrat's getting 52% of the two-party voteshare, which again shows a pretty good model considering that the Democrat's actually got around 54% of the two-party vote share. Being within 2% as we are for both of the models so far is really good for out-of-sample accuracy. 
+<br>
+We can now look at the 2022 predictions which shows the Democrats getting 49% of the vote. This doesn't exactly agree with the Economic model, but this makes sense because the Generic Ballot has been showing the Democrats doing better than a traditional fundamentals model might expect. The interval of this prediction is also less wide with a range of 45 to 53.
+```{r}
+library(lubridate)
+genericballot22 <- genericballot2022 %>% 
+  mutate(start_date=mdy(start_date), election_date=mdy("11-08-2022"), days_till_election=abs(as.numeric(election_date-start_date)), meanPoll = mean(dem)) %>% 
+  filter(days_till_election<=100)
+genericballotmodel <- genericballotVote %>% 
+  filter(party=="D", days_until_election<=100, year!="2008") %>% 
+  group_by(year) %>% 
+  mutate(meanPoll = mean(dem))
+genericballotlm <- lm(majorvote_pct ~ meanPoll, data=genericballotmodel)
+genericballotPrediction <- mean(predict(genericballotlm, genericballot22))
+genericPredictionInterval <- predict(genericballotlm, genericballot22, interval="prediction")
+#Out of Sample Accuracy
+
+genericballot2018 <-genericballotmodel %>% 
+  filter(year==2018)
+genericTestPredictionInterval <- predict(genericballotlm, genericballot2018, interval="prediction")
+genericTestPrediction <- mean(predict(genericballotlm, genericballot2018))
+
+generictable <- matrix(c(genericballotPrediction, "45.48656",  "52.64188",  genericTestPrediction, "48.10613", "55.25975", "0.612", "", "" ), ncol=3, byrow=TRUE)
+rownames(generictable) <- c("Prediction", "2018 Test Prediction", "R-Squared")
+colnames(generictable) <- c("Prediction", "Lower", "Upper")
+stargazer(generictable, title="Generic Ballot Prediction (Democratic Predicted Voteshare)", type="text")
+```
+<br>
+Finally, we can look at the Expert Ratings part of the model. This uses Expert Predictions from the most recent election cycles to predict Democratic voteshare in each district that we have predictions for and then takes a mean to get the National Voteshare. While we have a lot less years for this model, we do have a lot of datapoints because there are so many races to predict in each cycle. As we can see, the R-Squared is the highest we have seen at 0.7023. This indicates a good model. The test prediction for 2018, showed Democrats getting 48% of the vote, which was a little bit further off than the first two models were. However, the actual Democrat voteshare was in the range of the interval and was not too far off, so it is not an awful out of sample model. It still however indicates that maybe the higher R-square of the model is due to a little bit more overfitting than the first two.
+```{r}
+expert_ratings2022 <- expert_ratings2022 %>% 
+  rowwise() %>% 
+  mutate(avg_rating=mean(c(cook, rothenberg, sabatos_crystal_ball, real_clear, fivethirtyeight, ddhq, politico, fox, the_economist)))
+h2<- h %>% 
+  filter(raceYear==2020 | raceYear==2018) %>% 
+  rename(year=raceYear)
+polls_dfModel <- polls_df %>% 
+  mutate(year = ifelse(year%%2!=0, year+1, year)) %>% 
+  filter(year!=2022) %>% 
+  mutate(cd_fips= as.numeric(cd_fips), st_fips=as.numeric(st_fips), DEM=as.numeric(DEM)) %>% 
+  rename(district_num=cd_fips)
+pollShare <- full_join(polls_dfModel, h2, by=c("year", "st_fips", "district_num"))
+districtpollLM <- lm(DemVotesMajorPercent ~ DEM, data=pollShare)
+h2022 <- h %>% 
+  filter(raceYear==2022) %>% 
+  rename(year=raceYear)
+polls2022Dem <- polls2022 %>% 
+  filter(party=="DEM") %>% 
+  rename(DEM=pct)
+polls2022Michigan <- polls2022Dem %>% 
+  filter(st_fips==26 & cd_fips==10)
+mi10pollingprediction <-mean(predict(districtpollLM, polls2022Michigan))
+expert_ratingsModel <- expert_ratings %>% 
+  filter(year!=2022) %>% 
+  mutate(district=as.numeric(district))
+h3 <- h %>% 
+  filter(raceYear>=2010) %>% 
+  rename(year=raceYear, state=State, district=district_num)
+expertShare <- full_join(expert_ratingsModel, h3, by=c("year", "state", "district"))
+districtexpertLM <- lm(DemVotesMajorPercent~avg_rating, data=expertShare)
+```
+<br>
+The prediction for 2022 shows the Democrats getting about 49% of the voteshare, with a wide interval ranging from 42 to 55. 
+```{r}
+nationalexpertPrediction <- mean(predict(districtexpertLM, expert_ratings2022))
+nationalexpertPredictionInterval <- predict(districtexpertLM, expert_ratings2022, interval="prediction")
+lower <- 0
+upper <- 0
+for (i in 1:137) {
+  lower=nationalexpertPredictionInterval[i,2] + lower
+  upper = nationalexpertPredictionInterval[i,3] + upper
+}
+lowerPrediction <- lower/137
+upperPrediction <- upper/137
+#Out of sample prediction
+
+expert2018 <- expert_ratingsModel %>% 
+  filter(year==2018)
+testPrediction <- mean(predict(districtexpertLM, expert2018))
+testPredictionInterval <- predict(districtexpertLM, expert2018, interval="prediction")
+upper2 <- 0
+lower2 <- 0
+for (i in 1:136) {
+  lower2=testPredictionInterval[i,2] + lower
+  upper2 = testPredictionInterval[i,3] + upper
+}
+testupperPrediction <- upper2/136
+testlowerPrediction <- lower2/136
+
+experttable <- matrix(c(nationalexpertPrediction, lowerPrediction, upperPrediction,  testPrediction, testlowerPrediction, testupperPrediction, "0.7023", "", "" ), ncol=3, byrow=TRUE)
+rownames(experttable) <- c("Prediction", "2018 Test Prediction", "R-Squared")
+colnames(experttable) <- c("Prediction", "Lower", "Upper")
+stargazer(experttable, title="Expert Prediction (Democratic Predicted Voteshare)", type="text")
+
+pvipredictionnational <- ((mean(pvi$PVI_num))/2) + 50
+
+```
+<br>
+Now that I have explained and justified each piece of my model, I can offer my final predictions. To weight each part of the model, I chose to make the Expert Predictions and Generic Ballot worth a little bit more since they seemed beeter models to me, so they are each weighted at 0.35 and the Economic Model is weighted at 0.2 The last 0.1 of the weight is not a model but a measure of the mean Cook PVI of the country just to offer a measure of where the country is on average.
+<br>
+As you can see in the table, the overall model predicts Democrats getting 48% of the national vote, with an interval from 43% to 53%. This obviously shows the Democrats losing as most predictions would indicate at this time.
+```{r}
+overallPrediction <- (0.35*genericballotPrediction) + (0.35*nationalexpertPrediction) + (0.2*gdpPrediction) + (0.1*pvipredictionnational)
+overallLower <- (0.35*45.48656) +(0.35*lowerPrediction) + (0.2*35.59525) +(0.1*pvipredictionnational)
+overallUpper <- (0.35*52.64188) + (0.35*upperPrediction) + (0.2*51.72125) +(0.1*pvipredictionnational)
+overalltable <- matrix(c("1", overallPrediction, overallLower, overallUpper, "0.35", genericballotPrediction, "45.48656", "52.64188", "0.35", nationalexpertPrediction, lowerPrediction, upperPrediction, "0.2", gdpPrediction, "35.59525", "51.7215", "0.1", pvipredictionnational, pvipredictionnational, pvipredictionnational), ncol=4, byrow=TRUE)
+rownames(overalltable) <- c("Overall", "Generic Ballot", "Expert", "Economic", "Cook PVI")
+colnames(overalltable) <- c("Weight", "Prediction", "Lower", "Upper")
+stargazer(overalltable, title="Overall Prediction (Dem Predicted Voteshare)", type="text")
+```
+
+
+## Close Districts
+<br>
+Finally, I did a little bit of work to predict District level results for close districts. The problem with close districts is that one of our models, the Generic Ballot, is harder to do on a district level because districts have very poor and unpredictable polling. The district level polling model is not very effective, but I did want to use district polls where possible. The predictions that you see below for all of close districts uses the same economic model, the same expert predictions model, but just obviously predictions for a given district, and where possible it uses a district polling model. For districts where polling was not available, I simply increased the weight of the expert model. Also, I have increased the weight of the PVI, because for just one district the PVI is more important as it tells us the exact partisanship of a district. Therefore the weights for these districts are as follows. For districts with polling: 0.3 PVI + 0.3 Expert + 0.2 Polling + 0.2 Economic. For districts without enough polling: 0.3 PVI + 0.5 Expert + 0.2 Economic. This model is harder to make and likely a lot less useful or accurate than the National Model, which is my primary model as I previously justified.
+
+```{r}
+mi10expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="Michigan" & district==10) %>% 
+  select(avg_rating)
+mi10expertPrediction <- predict(districtexpertLM, mi10expert)
+pviMichigan <- pvi %>% 
+  filter(District=="Michigan 10")
+pvilm <- 50+((pviMichigan$PVI_num)/2)
+econ <- econdata %>% 
+  filter(year%%4!=0, quarter_cycle=="5")
+lm_gdp <- lm(H_incumbent_party_majorvote_pct ~ GDPC1, data=econ)
+gdpVotenew <-gdp_df %>% 
+  filter(year==2022, quarter_cycle=="5") %>% 
+  select(GDPC1)
+gdpPrediction <- predict(lm_gdp, gdpVotenew)
+expertRsquared <- summary(districtexpertLM)$r.squared
+gdpRsquared<- summary(lm_gdp)$r.squared
+mi10Prediction <- mean((0.3*pvilm) + (0.3* mi10expertPrediction) + (0.2*mi10pollingprediction) +0.2*(gdpPrediction))
+tx15expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="Texas" & district==15) %>% 
+  select(avg_rating)
+tx15expertPrediction <- predict(districtexpertLM, tx15expert)
+pviTexas15 <- pvi %>% 
+  filter(District=="Texas 15")
+pvilmTx15 <- 50+((pviTexas15$PVI_num)/2)
+polls2022Texas15 <- polls2022Dem %>% 
+  filter(st_fips==48 & cd_fips==15)
+tx15pollingprediction <-mean(predict(districtpollLM, polls2022Texas15))
+tx15Prediction <- mean((0.3*pvilmTx15) + (0.5* tx15expertPrediction) +(0.2*gdpPrediction))
+pa7expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="Pennsylvania" & district==7) %>% 
+  select(avg_rating)
+pa7expertPrediction <- predict(districtexpertLM, pa7expert)
+pviPennsylvania7 <- pvi %>% 
+  filter(District=="Pennsylvania 7")
+pvilmPa7 <- 50+((pviPennsylvania7$PVI_num)/2)
+polls2022Pennsylvania <- polls2022Dem %>% 
+  filter(st_fips==42 & cd_fips==7)
+pa7pollingprediction <-mean(predict(districtpollLM, polls2022Pennsylvania))
+pa7Prediction <- mean((0.3*pvilmPa7) + (0.5* pa7expertPrediction) +  (0.2*gdpPrediction))
+ca27expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="California" & district==27) %>% 
+  select(avg_rating)
+ca27expertPrediction <- predict(districtexpertLM, ca27expert)
+pviCalifornia27 <- pvi %>% 
+  filter(District=="California 27")
+pvilmca27 <- 50+((pviCalifornia27$PVI_num)/2)
+polls2022California27 <- polls2022Dem %>% 
+  filter(st_fips==6 & cd_fips==27)
+ca27pollingprediction <-mean(predict(districtpollLM, polls2022California27))
+ca27Prediction <-mean((0.3*pvilmca27) + (0.3* ca27expertPrediction) + (0.2*ca27pollingprediction) +(0.2*gdpPrediction))
+ca22expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="California" & district==22) %>% 
+  select(avg_rating)
+ca22expertPrediction <- predict(districtexpertLM, ca22expert)
+pviCalifornia22 <- pvi %>% 
+  filter(District=="California 22")
+pvilmca22 <- 50+((pviCalifornia27$PVI_num)/2)
+polls2022California22 <- polls2022Dem %>% 
+  filter(st_fips==6 & cd_fips==22)
+ca22pollingprediction <-mean(predict(districtpollLM, polls2022California22))
+ca22Prediction <-mean((0.3*pvilmca22) + (0.3* ca22expertPrediction) + (0.2*ca22pollingprediction) +(0.2*gdpPrediction))
+va2expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="Virginia" & district==2) %>% 
+  select(avg_rating)
+va2expertPrediction <- predict(districtexpertLM, va2expert)
+pviVirginia2 <- pvi %>% 
+  filter(District=="Virginia 2")
+pvilmva2 <- 50+((pviVirginia2$PVI_num)/2)
+polls2022Virginia2 <- polls2022Dem %>% 
+  filter(st_fips==51 & cd_fips==2)
+va2pollingprediction <-mean(predict(districtpollLM, polls2022Virginia2))
+va2Prediction <-mean((0.3*pvilmva2) + (0.3* va2expertPrediction) + (0.2*va2pollingprediction) +(0.2*gdpPrediction))
+az2expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="Arizona" & district==2) %>% 
+  select(avg_rating)
+az2expertPrediction <- predict(districtexpertLM, az2expert)
+pviArizona2 <- pvi %>% 
+  filter(District=="Arizona 2")
+pvilmaz2 <- 50+((pviArizona2$PVI_num)/2)
+polls2022Arizona2 <- polls2022Dem %>% 
+  filter(st_fips==4 & cd_fips==2)
+az2pollingprediction <-mean(predict(districtpollLM, polls2022Arizona2))
+az2Prediction <-mean((0.3*pvilmaz2) + (0.5* az2expertPrediction) + (0.2*gdpPrediction))
+
+```
+```{r}
+ks3expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="Kansas" & district==3) %>% 
+  select(avg_rating)
+ks3expertPrediction <- predict(districtexpertLM, ks3expert)
+pviKansas3 <- pvi %>% 
+  filter(District=="Kansas 3")
+pvilmks3 <- 50+((pviKansas3$PVI_num)/2)
+polls2022Kansas3 <- polls2022Dem %>% 
+  filter(st_fips==20 & cd_fips==3)
+ks3pollingprediction <-mean(predict(districtpollLM, polls2022Kansas3))
+ks3Prediction <-mean((0.3*pvilmks3) + (0.3* ks3expertPrediction) + (0.2*ks3pollingprediction) +(0.2*gdpPrediction))
+or5expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="Oregon" & district==5) %>% 
+  select(avg_rating)
+or5expertPrediction <- predict(districtexpertLM, or5expert)
+pviOregon5 <- pvi %>% 
+  filter(District=="Oregon 5")
+pvilmor5 <- 50+((pviOregon5$PVI_num)/2)
+polls2022Oregon5 <- polls2022Dem %>% 
+  filter(st_fips==41 & cd_fips==5)
+or5pollingprediction <-mean(predict(districtpollLM, polls2022Oregon5))
+or5Prediction <-mean((0.3*pvilmor5) + (0.3* or5expertPrediction) + (0.2*or5pollingprediction) +(0.2*gdpPrediction))
+
+ia3expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="Iowa" & district==3) %>% 
+  select(avg_rating)
+ia3expertPrediction <- predict(districtexpertLM, ia3expert)
+pviIowa3 <- pvi %>% 
+  filter(District=="Iowa 3")
+pvilmia3 <- 50+((pviIowa3$PVI_num)/2)
+polls2022Iowa3 <- polls2022Dem %>% 
+  filter(st_fips==19 & cd_fips==3)
+ia3pollingprediction <-mean(predict(districtpollLM, polls2022Iowa3))
+ia3Prediction <-mean((0.3*pvilmia3) + (0.3* ia3expertPrediction) + (0.2*ia3pollingprediction) +(0.2*gdpPrediction))
+
+ny19expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="New York" & district==19) %>% 
+  select(avg_rating)
+ny19expertPrediction <- predict(districtexpertLM, ny19expert)
+pviNY19 <- pvi %>% 
+  filter(District=="New York 19")
+pvilmny19 <- 50+((pviNY19$PVI_num)/2)
+polls2022NY19 <- polls2022Dem %>% 
+  filter(st_fips==36 & cd_fips==19)
+ny19pollingprediction <-mean(predict(districtpollLM, polls2022NY19))
+ny19Prediction <-mean((0.3*pvilmny19) + (0.3* ny19expertPrediction) + (0.2*ny19pollingprediction) +(0.2*gdpPrediction))
+
+ri2expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="Rhode Island" & district==2) %>% 
+  select(avg_rating)
+ri2expertPrediction <- predict(districtexpertLM, ri2expert)
+pviri2 <- pvi %>% 
+  filter(District=="Rhode Island 2")
+pvilmri2 <- 50+((pviri2$PVI_num)/2)
+polls2022RI2 <- polls2022Dem %>% 
+  filter(st_fips==44 & cd_fips==2)
+ri2pollingprediction <-mean(predict(districtpollLM, polls2022RI2))
+ri2Prediction <-mean((0.3*pvilmri2) + (0.5* ri2expertPrediction) + (0.2*gdpPrediction))
+
+nm2expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="New Mexico" & district==2) %>% 
+  select(avg_rating)
+nm2expertPrediction <- predict(districtexpertLM, nm2expert)
+pvinm2 <- pvi %>% 
+  filter(District=="New Mexico 2")
+pvilmnm2 <- 50+((pvinm2$PVI_num)/2)
+polls2022NM2 <- polls2022Dem %>% 
+  filter(st_fips==35 & cd_fips==2)
+nm2pollingprediction <-mean(predict(districtpollLM, polls2022NM2))
+nm2Prediction <-mean((0.3*pvilmnm2) + (0.3* nm2expertPrediction) + (0.2*nm2pollingprediction) +(0.2*gdpPrediction))
+
+nm2expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="New Mexico" & district==2) %>% 
+  select(avg_rating)
+nm2expertPrediction <- predict(districtexpertLM, nm2expert)
+pvinm2 <- pvi %>% 
+  filter(District=="New Mexico 2")
+pvilmnm2 <- 50+((pvinm2$PVI_num)/2)
+polls2022NM2 <- polls2022Dem %>% 
+  filter(st_fips==35 & cd_fips==2)
+nm2pollingprediction <-mean(predict(districtpollLM, polls2022NM2))
+nm2Prediction <-mean((0.3*pvilmnm2) + (0.3* nm2expertPrediction) + (0.2*nm2pollingprediction) +(0.2*gdpPrediction))
+
+mi3expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="Michigan" & district==3) %>% 
+  select(avg_rating)
+mi3expertPrediction <- predict(districtexpertLM, mi3expert)
+pvimi3 <- pvi %>% 
+  filter(District=="Michigan 3")
+pvilmmi3 <- 50+((pvimi3$PVI_num)/2)
+polls2022MI3 <- polls2022Dem %>% 
+  filter(st_fips==26 & cd_fips==3)
+mi3pollingprediction <-mean(predict(districtpollLM, polls2022MI3))
+mi3Prediction <- mean((0.3*pvilmmi3) + (0.4* mi3expertPrediction) + (0.1*mi3pollingprediction) +(0.22*gdpPrediction))
+
+md6expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="Maryland" & district==6) %>% 
+  select(avg_rating)
+md6expertPrediction <- predict(districtexpertLM, md6expert)
+pvimd6 <- pvi %>% 
+  filter(District=="Maryland 6")
+pvilmmd6 <- 50+((pvimd6$PVI_num)/2)
+polls2022MD6 <- polls2022Dem %>% 
+  filter(st_fips==24 & cd_fips==6)
+md6pollingprediction <-mean(predict(districtpollLM, polls2022MD6))
+md6Prediction <- mean((0.3*pvilmmd6) + (0.3* md6expertPrediction) + (0.2*md6pollingprediction) +(0.21*gdpPrediction))
+```
+```{r}
+il17expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="Illinois" & district==17) %>% 
+  select(avg_rating)
+il17expertPrediction <- predict(districtexpertLM, il17expert)
+pviil17 <- pvi %>% 
+  filter(District=="Illinois 17")
+pvilmil17 <- 50+((pviil17$PVI_num)/2)
+polls2022IL17 <- polls2022Dem %>% 
+  filter(st_fips==17 & cd_fips==17)
+il17pollingprediction <-mean(predict(districtpollLM, polls2022IL17))
+il17Prediction <- mean((0.3*pvilmil17) + (0.5* il17expertPrediction) +(0.2*gdpPrediction))
+
+or6expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="Oregon" & district==6) %>% 
+  select(avg_rating)
+or6expertPrediction <- predict(districtexpertLM, or6expert)
+pvior6 <- pvi %>% 
+  filter(District=="Oregon 6")
+pvilmor6 <- 50+((pvior6$PVI_num)/2)
+polls2022OR6 <- polls2022Dem %>% 
+  filter(st_fips==41 & cd_fips==6)
+or6pollingprediction <-mean(predict(districtpollLM, polls2022OR6))
+or6Prediction <- mean((0.3*pvilmor6) + (0.3* or6expertPrediction) + (0.2*or6pollingprediction) +(0.2*gdpPrediction))
+
+nj7expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="New Jersey" & district==7) %>% 
+  select(avg_rating)
+nj7expertPrediction <- predict(districtexpertLM, nj7expert)
+pvinj7 <- pvi %>% 
+  filter(District=="New Jersey 7")
+pvilmnj7 <- 50+((pvinj7$PVI_num)/2)
+polls2022NJ7 <- polls2022Dem %>% 
+  filter(st_fips==34 & cd_fips==7)
+nj7pollingprediction <-mean(predict(districtpollLM, polls2022NJ7))
+nj7Prediction <- mean((0.3*pvilmnj7) + (0.3* nj7expertPrediction) + (0.2*nj7pollingprediction) +(0.2*gdpPrediction))
+
+co8expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="Colorado" & district==8) %>% 
+  select(avg_rating)
+co8expertPrediction <- predict(districtexpertLM, co8expert)
+pvico8 <- pvi %>% 
+  filter(District=="Colorado 8")
+pvilmco8 <- 50+((pvico8$PVI_num)/2)
+polls2022CO8 <- polls2022Dem %>% 
+  filter(st_fips==8 & cd_fips==8)
+co8pollingprediction <-mean(predict(districtpollLM, polls2022CO8))
+co8Prediction <- mean((0.3*pvilmco8) + (0.3* co8expertPrediction) + (0.2*co8pollingprediction) +(0.2*gdpPrediction))
+
+ny22expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="New York" & district==22) %>% 
+  select(avg_rating)
+ny22expertPrediction <- predict(districtexpertLM, ny22expert)
+pviny22 <- pvi %>% 
+  filter(District=="New York 22")
+pvilmny22 <- 50+((pviny22$PVI_num)/2)
+polls2022NY22 <- polls2022Dem %>% 
+  filter(st_fips==36 & cd_fips==22)
+ny22pollingprediction <-mean(predict(districtpollLM, polls2022NY22))
+ny22Prediction <- mean((0.3*pvilmny22) + (0.5* ny22expertPrediction) + (0.2*gdpPrediction))
+
+me2expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="Maine" & district==2) %>% 
+  select(avg_rating)
+me2expertPrediction <- predict(districtexpertLM, md6expert)
+pvime2 <- pvi %>% 
+  filter(District=="Maine 2")
+pvilmme2 <- 50+((pvime2$PVI_num)/2)
+polls2022ME2 <- polls2022Dem %>% 
+  filter(st_fips==23 & cd_fips==2)
+me2pollingprediction <-mean(predict(districtpollLM, polls2022ME2))
+me2Prediction <- mean((0.3*pvilmme2) + (0.3* me2expertPrediction) + (0.2*me2pollingprediction) +(0.2*gdpPrediction))
+
+nc13expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="North Carolina" & district==13) %>% 
+  select(avg_rating)
+nc13expertPrediction <- predict(districtexpertLM, nc13expert)
+pvinc13 <- pvi %>% 
+  filter(District=="North Carolina 13")
+pvilmnc13 <- 50+((pvinc13$PVI_num)/2)
+polls2022NC13 <- polls2022Dem %>% 
+  filter(st_fips==37 & cd_fips==13)
+nc13pollingprediction <-mean(predict(districtpollLM, polls2022NC13))
+nc13Prediction <- mean((0.3*pvilmnc13) + (0.3* nc13expertPrediction) + (0.2*nc13pollingprediction) +(0.2*gdpPrediction))
+
+ny18expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="New York" & district==18) %>% 
+  select(avg_rating)
+ny18expertPrediction <- predict(districtexpertLM, ny18expert)
+pviny18 <- pvi %>% 
+  filter(District=="New York 18")
+pvilmny18 <- 50+((pviny18$PVI_num)/2)
+polls2022NY18 <- polls2022Dem %>% 
+  filter(st_fips==36 & cd_fips==18)
+ny18pollingprediction <-mean(predict(districtpollLM, polls2022MD6))
+ny18Prediction <- mean((0.3*pvilmny18) + (0.5* ny18expertPrediction) + (0.2*gdpPrediction))
+```
+```{r}
+pa8expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="Pennsylvania" & district==8) %>% 
+  select(avg_rating)
+pa8expertPrediction <- predict(districtexpertLM, pa8expert)
+pvipa8 <- pvi %>% 
+  filter(District=="Pennsylvania 8")
+pvilmpa8 <- 50+((pvipa8$PVI_num)/2)
+polls2022PA8 <- polls2022Dem %>% 
+  filter(st_fips==42 & cd_fips==8)
+pa8pollingprediction <-mean(predict(districtpollLM, polls2022PA8))
+pa8Prediction <- mean((0.3*pvilmpa8) + (0.3* pa8expertPrediction) + (0.2*pa8pollingprediction) +(0.2*gdpPrediction))
+
+nv3expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="Nevada" & district==3) %>% 
+  select(avg_rating)
+nv3expertPrediction <- predict(districtexpertLM, nv3expert)
+pvinv3 <- pvi %>% 
+  filter(District=="Nevada 3")
+pvilmnv3 <- 50+((pvinv3$PVI_num)/2)
+polls2022NV3 <- polls2022Dem %>% 
+  filter(st_fips==32 & cd_fips==3)
+nv3pollingprediction <-mean(predict(districtpollLM, polls2022NV3))
+nv3Prediction <- mean((0.3*pvilmnv3) + (0.3* nv3expertPrediction) + (0.2*nv3pollingprediction) +(0.2*gdpPrediction))
+
+pa17expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="Pennsylvania" & district==17) %>% 
+  select(avg_rating)
+pa17expertPrediction <- predict(districtexpertLM, pa17expert)
+pvipa17 <- pvi %>% 
+  filter(District=="Pennsylvania 17")
+pvilmpa17 <- 50+((pvipa17$PVI_num)/2)
+polls2022PA17 <- polls2022Dem %>% 
+  filter(st_fips==42 & cd_fips==17)
+pa17pollingprediction <-mean(predict(districtpollLM, polls2022NC13))
+pa17Prediction <- mean((0.3*pvilmpa17) + (0.3* pa17expertPrediction) + (0.2*pa17pollingprediction) +(0.2*gdpPrediction))
+
+ny3expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="New York" & district==3) %>% 
+  select(avg_rating)
+ny3expertPrediction <- predict(districtexpertLM, ny3expert)
+pviny3 <- pvi %>% 
+  filter(District=="New York 3")
+pvilmny3 <- 50+((pviny3$PVI_num)/2)
+polls2022NY3 <- polls2022Dem %>% 
+  filter(st_fips==36 & cd_fips==3)
+ny3pollingprediction <-mean(predict(districtpollLM, polls2022NY3))
+ny3Prediction <- mean((0.3*pvilmny3) + (0.5* ny3expertPrediction) +(0.22*gdpPrediction))
+
+tx34expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="Texas" & district==34) %>% 
+  select(avg_rating)
+tx34expertPrediction <- predict(districtexpertLM, tx34expert)
+pvitx34 <- pvi %>% 
+  filter(District=="Texas 34")
+pvilmtx34 <- 50+((pvitx34$PVI_num)/2)
+polls2022TX34 <- polls2022Dem %>% 
+  filter(st_fips==48 & cd_fips==34 & candidate_name=="Vicente Gonzalez")
+tx34pollingprediction <-mean(predict(districtpollLM, polls2022TX34))
+tx34Prediction <- mean((0.3*pvilmtx34) + (0.3* tx34expertPrediction) + (0.2*tx34pollingprediction) +(0.2*gdpPrediction))
+
+ny1expert <- expert_ratings2022 %>% 
+  filter(year==2022 & state=="New York" & district==1) %>% 
+  select(avg_rating)
+ny1expertPrediction <- predict(districtexpertLM, ny1expert)
+pviny1 <- pvi %>% 
+  filter(District=="New York 1")
+pvilmny1 <- 50+((pviny1$PVI_num)/2)
+polls2022NY1 <- polls2022Dem %>% 
+  filter(st_fips==36 & cd_fips==1)
+ny1pollingprediction <-mean(predict(districtpollLM, polls2022NY1))
+ny1Prediction <- mean((0.3*pvilmny1) + (0.5* ny1expertPrediction) +(0.2*gdpPrediction))
+```
+```{r}
+closedistricts <- matrix(c("AZ-2", "R", az2Prediction, "CA-22", "R", ca22Prediction, "CA-27", "R", ca27Prediction, "CO-8", "R", co8Prediction, "IA-3", "R", ia3Prediction, "IL-17", "R", il17Prediction, "KS-3", "R", ks3Prediction, "MD-6", "D", md6Prediction, "ME-2", "R", me2Prediction, "MI-10", "R", mi10Prediction, "MI-3", "D", mi3Prediction, "NC-13", "R", nc13Prediction, "NJ-7", "R", nj7Prediction, "NM-2", "R", nm2Prediction, "NV-3", "R", nv3Prediction, "NY-18", "R", ny18Prediction, "NY-19", "R", ny19Prediction, "NY-1", "R", ny1Prediction, "NY-22", "R", ny22Prediction, "NY-3", "D", ny3Prediction, "OR-5", "R", or5Prediction, "OR-6", "R", or6Prediction, "PA-17", "R", pa17Prediction, "PA-7", "R", pa7Prediction, "PA-8", "R", pa8Prediction, "RI-2", "R", ri2Prediction, "TX-15", "R", tx15Prediction, "TX-34", "D", tx34Prediction, "VA-2", "R", va2Prediction), ncol=3, byrow=TRUE)
+colnames(closedistricts) <- c("District", "Winning Party", "Dem Voteshare (2-Party)")
+stargazer(closedistricts, title="District Predictions of Close Races", type="text")
+
+```
