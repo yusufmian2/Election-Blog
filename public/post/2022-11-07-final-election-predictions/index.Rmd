@@ -5,9 +5,8 @@ date: '2022-11-06'
 slug: []
 categories: []
 tags: []
-summary: "We have reached election day! Here are my final predictions"
 ---
-unlock(index.lock)
+
 ## Final Predictions
 
 Election day is this Tuesday, November 8th. In this blog, I will first explain each of the components of my predictive election model and then offer my final predictions for this election. 
