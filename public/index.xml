@@ -6,7 +6,25 @@
     <description>Recent content on My New Hugo Site</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 19 Oct 2022 00:00:00 +0000</lastBuildDate><atom:link href="http://example.org/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 06 Nov 2022 00:00:00 +0000</lastBuildDate><atom:link href="http://example.org/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Final Election Predictions</title>
+      <link>http://example.org/post/2022-11-07-final-election-predictions/</link>
+      <pubDate>Sun, 06 Nov 2022 00:00:00 +0000</pubDate>
+      
+      <guid>http://example.org/post/2022-11-07-final-election-predictions/</guid>
+      <description>We have reached election day! Here are my final predictions</description>
+    </item>
+    
+    <item>
+      <title>Blog Post 7</title>
+      <link>http://example.org/post/2022-10-26-blog-post-7/</link>
+      <pubDate>Tue, 25 Oct 2022 00:00:00 +0000</pubDate>
+      
+      <guid>http://example.org/post/2022-10-26-blog-post-7/</guid>
+      <description>Shocks and Pooled Models? In today’s blog I will briefly go over the idea of shocks as well as the final changes to my model including the potential for using a pooled model. Shocks are sudden events that may come up unexpected in an election season. In 2022, the unquestionably most impactful shock was the Supreme Court decision in Dobbs v Jackson, which overturned the legal right to an abortion.</description>
+    </item>
+    
     <item>
       <title>Blog Post 6</title>
       <link>http://example.org/post/2022-10-19-blog-post-6/</link>
