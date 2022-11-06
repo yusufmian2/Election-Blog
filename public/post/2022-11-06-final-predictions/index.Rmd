@@ -1,11 +1,10 @@
 ---
-title: Final Election Predictions
+title: Final Predictions
 author: Yusuf Mian
 date: '2022-11-06'
 slug: []
 categories: []
 tags: []
-summary: "We have reached election day! Here are my final predictions"
 ---
 
 ## Final Predictions
@@ -18,7 +17,7 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 setwd("/Users/yusufmian/Desktop/Election Analysis/Election-Blog")
 mydata <- readRDS("dobbs_2022.RDS")
 genericballot2022 <- read.csv("genericballot2022.csv")
-library(tidyverse); library(knitr)
+library(tidyverse); library(knitr); library(lubridate)
 polls2022 <- read.csv("538_house_polls_2022.csv")
 generic1942 <- read.csv("GenericPolls1942_2020.csv")
 genericballot <- generic1942 %>% 
@@ -68,7 +67,6 @@ The next aspect of the model is the Generic Ballot. For the Generic Ballot, I ma
 <br>
 We can now look at the 2022 predictions which shows the Democrats getting 49% of the vote. This doesn't exactly agree with the Economic model, but this makes sense because the Generic Ballot has been showing the Democrats doing better than a traditional fundamentals model might expect. The interval of this prediction is also less wide with a range of 45 to 53.
 ```{r}
-library(lubridate)
 genericballot22 <- genericballot2022 %>% 
   mutate(start_date=mdy(start_date), election_date=mdy("11-08-2022"), days_till_election=abs(as.numeric(election_date-start_date)), meanPoll = mean(dem)) %>% 
   filter(days_till_election<=100)
