@@ -1,7 +1,7 @@
 ---
 title: Final Predictions
 author: Yusuf Mian
-date: '2022-11-06'
+date: '2022-11-07'
 slug: []
 categories: []
 tags: []
@@ -71,12 +71,18 @@ genericballot22 <- genericballot2022 %>%
   mutate(start_date=mdy(start_date), election_date=mdy("11-08-2022"), days_till_election=abs(as.numeric(election_date-start_date)), meanPoll = mean(dem)) %>% 
   filter(days_till_election<=100)
 genericballotmodel <- genericballotVote %>% 
-  filter(party=="D", days_until_election<=100, year!="2008") %>% 
+  filter(party=="D", days_until_election<=100) %>% 
   group_by(year) %>% 
   mutate(meanPoll = mean(dem))
 genericballotlm <- lm(majorvote_pct ~ meanPoll, data=genericballotmodel)
 genericballotPrediction <- mean(predict(genericballotlm, genericballot22))
 genericPredictionInterval <- predict(genericballotlm, genericballot22, interval="prediction")
+
+
+bigvillage <- genericballot22 %>% 
+  filter(pollster=="Big Village")
+mean(bigvillage$dem)
+mean(bigvillage$rep)
 #Out of Sample Accuracy
 
 genericballot2018 <-genericballotmodel %>% 
@@ -84,7 +90,8 @@ genericballot2018 <-genericballotmodel %>%
 genericTestPredictionInterval <- predict(genericballotlm, genericballot2018, interval="prediction")
 genericTestPrediction <- mean(predict(genericballotlm, genericballot2018))
 
-generictable <- matrix(c(genericballotPrediction, "45.48656",  "52.64188",  genericTestPrediction, "48.10613", "55.25975", "0.612", "", "" ), ncol=3, byrow=TRUE)
+
+generictable <- matrix(c(genericballotPrediction, "45.38579",  "52.92172",  genericTestPrediction, "48.08031", "55.61432", "0.5931", "", "" ), ncol=3, byrow=TRUE)
 rownames(generictable) <- c("Prediction", "2018 Test Prediction", "R-Squared")
 colnames(generictable) <- c("Prediction", "Lower", "Upper")
 stargazer(generictable, title="Generic Ballot Prediction (Democratic Predicted Voteshare)", type="text")
@@ -165,9 +172,9 @@ Now that I have explained and justified each piece of my model, I can offer my f
 As you can see in the table, the overall model predicts Democrats getting 48% of the national vote, with an interval from 43% to 53%. This obviously shows the Democrats losing as most predictions would indicate at this time.
 ```{r}
 overallPrediction <- (0.35*genericballotPrediction) + (0.35*nationalexpertPrediction) + (0.2*gdpPrediction) + (0.1*pvipredictionnational)
-overallLower <- (0.35*45.48656) +(0.35*lowerPrediction) + (0.2*35.59525) +(0.1*pvipredictionnational)
-overallUpper <- (0.35*52.64188) + (0.35*upperPrediction) + (0.2*51.72125) +(0.1*pvipredictionnational)
-overalltable <- matrix(c("1", overallPrediction, overallLower, overallUpper, "0.35", genericballotPrediction, "45.48656", "52.64188", "0.35", nationalexpertPrediction, lowerPrediction, upperPrediction, "0.2", gdpPrediction, "35.59525", "51.7215", "0.1", pvipredictionnational, pvipredictionnational, pvipredictionnational), ncol=4, byrow=TRUE)
+overallLower <- (0.35*45.38579) +(0.35*lowerPrediction) + (0.2*35.59525) +(0.1*pvipredictionnational)
+overallUpper <- (0.35*52.92172) + (0.35*upperPrediction) + (0.2*51.72125) +(0.1*pvipredictionnational)
+overalltable <- matrix(c("1", overallPrediction, overallLower, overallUpper, "0.35", genericballotPrediction, "45.38579", "52.92172", "0.35", nationalexpertPrediction, lowerPrediction, upperPrediction, "0.2", gdpPrediction, "35.59525", "51.7215", "0.1", pvipredictionnational, pvipredictionnational, pvipredictionnational), ncol=4, byrow=TRUE)
 rownames(overalltable) <- c("Overall", "Generic Ballot", "Expert", "Economic", "Cook PVI")
 colnames(overalltable) <- c("Weight", "Prediction", "Lower", "Upper")
 stargazer(overalltable, title="Overall Prediction (Dem Predicted Voteshare)", type="text")

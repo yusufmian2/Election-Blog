@@ -53,7 +53,7 @@
     <span>Written by</span>
         Yusuf Mian
         <br>
-        <span>on&nbsp;</span><time datetime="2022-11-06 00:00:00 &#43;0000 UTC">November 6, 2022</time>
+        <span>on&nbsp;</span><time datetime="2022-11-07 00:00:00 &#43;0000 UTC">November 7, 2022</time>
 </div>
 
 		<h1 class="post-title">Final Predictions</h1>
@@ -87,14 +87,16 @@ Finally, we can look at the predictions for 2022, which predict the Democrats to
 The next aspect of the model is the Generic Ballot. For the Generic Ballot, I made a model which predicts the Democratic predicted Democrat’s predicted two-party vote share based on the mean of Generic Poll results for Democrats in the last 100 days of the election. As we can see, the R-Squared is 0.612, which is higher than the Economic part of the model and again it indicates that it is a fairly decent model. In terms of out of sample accuracy, I again tested the model on the 2018 election. The model predicted the Democrat’s getting 52% of the two-party voteshare, which again shows a pretty good model considering that the Democrat’s actually got around 54% of the two-party vote share. Being within 2% as we are for both of the models so far is really good for out-of-sample accuracy.
 <br>
 We can now look at the 2022 predictions which shows the Democrats getting 49% of the vote. This doesn’t exactly agree with the Economic model, but this makes sense because the Generic Ballot has been showing the Democrats doing better than a traditional fundamentals model might expect. The interval of this prediction is also less wide with a range of 45 to 53.</p>
+<pre><code>## [1] 45.025</code></pre>
+<pre><code>## [1] 40.3</code></pre>
 <pre><code>## 
 ## Generic Ballot Prediction (Democratic Predicted Voteshare)
 ## =======================================================
 ##                         Prediction     Lower    Upper  
 ## -------------------------------------------------------
-## Prediction           49.064219851932  45.48656 52.64188
-## 2018 Test Prediction 51.6829432666855 48.10613 55.25975
-## R-Squared                 0.612                        
+## Prediction           49.1537529352792 45.38579 52.92172
+## 2018 Test Prediction 51.847312911055  48.08031 55.61432
+## R-Squared                 0.5931                       
 ## -------------------------------------------------------</code></pre>
 <p><br>
 Finally, we can look at the Expert Ratings part of the model. This uses Expert Predictions from the most recent election cycles to predict Democratic voteshare in each district that we have predictions for and then takes a mean to get the National Voteshare. While we have a lot less years for this model, we do have a lot of datapoints because there are so many races to predict in each cycle. As we can see, the R-Squared is the highest we have seen at 0.7023. This indicates a good model. The test prediction for 2018, showed Democrats getting 48% of the vote, which was a little bit further off than the first two models were. However, the actual Democrat voteshare was in the range of the interval and was not too far off, so it is not an awful out of sample model. It still however indicates that maybe the higher R-square of the model is due to a little bit more overfitting than the first two.</p>
@@ -118,8 +120,8 @@ As you can see in the table, the overall model predicts Democrats getting 48% of
 ## ========================================================================
 ##                Weight    Prediction         Lower            Upper      
 ## ------------------------------------------------------------------------
-## Overall          1    48.0057437267965 42.8957847448963 53.1157023587824
-## Generic Ballot  0.35  49.064219851932      45.48656         52.64188    
+## Overall          1    48.037080305968  42.8605152448963 53.2136463587824
+## Generic Ballot  0.35  49.1537529352792     45.38579         52.92172    
 ## Expert          0.35  48.8033050906412 42.3885113565181 55.2180988247643
 ## Economic        0.2   43.6582511339047     35.59525         51.7215     
 ## Cook PVI        0.1   50.2045977011494 50.2045977011494 50.2045977011494
@@ -181,7 +183,7 @@ Finally, I did a little bit of work to predict District level results for close 
         		<footer>
 			
 			<span>
-			&copy; <time datetime="2022-11-06 16:23:24.450905 -0500 EST m=&#43;0.232544126">2022</time> . Made with <a href='https://gohugo.io'>Hugo</a> using the <a href='https://github.com/EmielH/tale-hugo/'>Tale</a> theme.
+			&copy; <time datetime="2022-11-07 09:33:30.620424 -0500 EST m=&#43;0.244303959">2022</time> . Made with <a href='https://gohugo.io'>Hugo</a> using the <a href='https://github.com/EmielH/tale-hugo/'>Tale</a> theme.
 			</span>
 		</footer>
 
