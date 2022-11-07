@@ -5,12 +5,12 @@ date: '2022-09-15'
 slug: []
 categories: []
 tags: []
-summary: "This is the first post of a weekly blog post leading into the 2022 Midterm elections!"
+summary: "This is the first post of a series of weekly blog posts leading into the 2022 Midterm elections!"
 ---
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 library(ggplot2)
 library(tidyverse)
 #### want a state-level analysis
@@ -87,7 +87,9 @@ cd117_mi <- cd117_mi %>% left_join(R_mi_2020, by="DISTRICT")
 micities <- data.frame(city = c("Ann Arbor", 
     "Detroit"), longitude = c(-83.7430, -83.0458), latitude=c(42.2808, 42.3314))
 
-
+suppressPlotlyMessage <- function(p) {
+  suppressMessages(plotly_build(p))
+}
 # time to map!
 mimap <- ggplot() + 
   geom_sf(data=cd117_mi,aes(fill=Rep_votes_pct),
@@ -95,14 +97,8 @@ mimap <- ggplot() +
   geom_point(data = micities, aes(x = longitude, y = latitude), size = 2.5, shape = c(19,21), fill = c("blue", "darkred"))+
   scale_fill_gradient(low = "white", high = "black", limits=c(10,80)) +
   theme_void() + ggtitle ("Republican Vote Share in 2020 MI Congressional Elections")
-  theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),
-        axis.title.y=element_blank(),
-        axis.text.y=element_blank(),
-        axis.ticks.y=element_blank())
   
-fig <- ggplotly(mimap)
+fig <- suppressPlotlyMessage(ggplotly(mimap))
 fig
 ```
 <br>
@@ -175,22 +171,19 @@ R_2014 <- h %>%
                             sum(RepVotes + DemVotes)) %>%
     rename(DISTRICT = district_num) %>% 
     rename(STATENAME = State)
+
 cd114 <- get_congress_map(114)
+
 cd114$DISTRICT <- as.numeric(cd114$DISTRICT)
 cd114 <- cd114 %>% left_join(R_2014, by=c("DISTRICT", "STATENAME"))
+
 USMap_simp <- rmapshaper::ms_simplify(cd114, keep = 0.01)
 USMap <- ggplot() +
   geom_sf(data=USMap_simp,aes(fill=R_votemargin_district),
           inherit.aes=FALSE,alpha=0.9) +
-  scale_fill_gradient(low = "white", high = "black", limits=c(0,90)) +ggtitle("Entire US- Republican Popular Vote Share by Congressional District") + coord_sf(xlim = c(-172.27, -66.57), ylim = c(18.55, 71.23), expand = FALSE)
-  theme_void() +
-  theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),
-        axis.title.y=element_blank(),
-        axis.text.y=element_blank(),
-        axis.ticks.y=element_blank())
-fig2 <- ggplotly(USMap)
+  scale_fill_gradient(low = "white", high = "black", limits=c(0,90)) +ggtitle("Entire US- Republican Popular Vote Share by Congressional District") + coord_sf(xlim = c(-172.27, -66.57), ylim = c(18.55, 71.23), expand = FALSE) +
+  theme_void()
+fig2 <- suppressPlotlyMessage(ggplotly(USMap))
 fig2
 ```
 

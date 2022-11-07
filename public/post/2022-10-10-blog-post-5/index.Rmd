@@ -6,6 +6,11 @@ slug: []
 categories: []
 tags: []
 ---
+## Week 5 - The Air War
+<br>
+For this week's blog, I will be delving into the concept of ad buys and how this may impact congressional races. To do this, we will be trying to build a model where we look at what impact the number of ad buys has on the eventual turnout of the race. As you will see below, we are looking at ads from the years 2006 to 2018. While we have the number of Democratic ad buys and the number of Republican ad buys in any given district, the independent variable of interest will actually be the percentage of Republican or Democratic ad buys out of all of the total ad buys in that district. In this case, I decided to use Republican vote share as the outcome, so I will be seeing what impact the percentage of Republican ad buys has on the turnout for Republicans in the race.
+<br>
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 library(tidyverse)
@@ -28,6 +33,7 @@ ad_creative2 <- ad_creative %>%
   filter(party=="Democrat" | party=="Republican") %>% 
   drop_na(district)
 ```
+As the below model shows, we are able to see some trends where an increase in the percentage of Republican ad buys leads to a small increase in the number of Republican vote percentage in that district. This makes sense because having a greater share of the ads in a district shoudl help you in the election. However, as you can also see below, we have a rather low R-Squared value close to 0.23, so it is possible that a lot of this variance in is not actually being explained by the variance in ad buys. A large part of this, as I will get into, is because of the severe limitations of this dataset. 
 ```{r}
 adVoteShare<- h %>% 
   select("raceYear", "State", "district_num", "RepVotesMajorPercent", "DemVotesMajorPercent", "CD") %>% 
@@ -40,7 +46,8 @@ adVoteShare<- h %>%
 repAdlm <- lm(adVoteShare$repAdPercent~ adVoteShare$RepVotesMajorPercent)
 summary(repAdlm)
 ```
-
+<br>
+To furhter visualize this, I also have a plot of Ad percentage vs vote percentage here.
 ```{r}
 adVoteShare %>%
    ggplot(aes(x=repAdPercent, y=RepVotesMajorPercent)) + 
@@ -54,6 +61,9 @@ adVoteShare %>%
            axis.title = element_text(size = 15),
            plot.title = element_text(size = 15))
 ```
+<br>
+Next, I will get into the limitations of the dataset. Below, I have plotted the total number of Democratic and Republican ads by congressional district in the year 2018 in the two maps below. As you can see, a large number of the districts don't have any color to them because they are showing up as NA. This is due to two things. The first is that in large numbers of districts which likely aren't competitive, candidates may not be running ads and we also may not have access to the data on if they are. While this makes sense that these district won't have ads, this also means that the years of 2006 to 2018 give us access to less data and it is harder to make a model. Furthermore, I believe that some of the NAs should not actually show up as none but it is due to error in the dataset.
+<br>
 ```{r}
 library(plotly)
 require(sf)
@@ -76,18 +86,22 @@ USMap_simp <- rmapshaper::ms_simplify(cd116New, keep = 0.01)
 USMap <- ggplot() +
   geom_sf(data=USMap_simp,aes(fill=Republican),
           inherit.aes=FALSE,alpha=0.9) +
-  scale_fill_gradient(low = "white", high = "black", limits=c(0,25000)) +ggtitle("Number of Republican Ads Run by District") + coord_sf(xlim = c(-124.4, -66.57), ylim = c(22, 50), expand = FALSE) +
+  scale_fill_gradient(low = "white", high = "red", limits=c(0,25000)) +ggtitle("Number of Republican Ads Run by District") + coord_sf(xlim = c(-124.4, -66.57), ylim = c(22, 50), expand = FALSE) +
   theme_void()
 USMap2 <- ggplot() +
   geom_sf(data=USMap_simp,aes(fill=Democrat),
           inherit.aes=FALSE,alpha=0.9) +
-  scale_fill_gradient(low = "white", high = "black", limits=c(0,25000)) +ggtitle("Number of Democratic  Ads Run by District") + coord_sf(xlim = c(-124.4, -66.57), ylim = c(22, 50), expand = FALSE) +
+  scale_fill_gradient(low = "white", high = "blue", limits=c(0,25000)) +ggtitle("Number of Democratic  Ads Run by District") + coord_sf(xlim = c(-124.4, -66.57), ylim = c(22, 50), expand = FALSE) +
   theme_void()
 fig <- ggplotly(USMap)
 fig2 <- ggplotly(USMap2)
 fig
 fig2
 ```
+<br>
+Next, I will get into some pitfalls. The first pitfall I would like to explain is the lack of available data from 2022. Even if we had this data, it would be very hard to update my ongoing national model because as I already explained it did not create a good model. However, we also simply don't have access to 2022 ad data, so we will not be updating the 2022 predictions for this week because of that.
+<br>
+With this in mind, I would like to pivot to another pitfall of the work we have been doing with ad buys, which is Gross Rating Points or GRPs and can help us think more about why ad buys themselves might not be a very predictive vatiable.
 
 Gross Rating Points (GRP) is a measure of how many people are watching television programming when an ad is aired. This is really important because in arguably this is more meaningful than fundraising or ad spending is. Even if assume that ad spending is effective in persuading some voters, ad spending on its own is only impactful if people actually see the ads. We calculate this score by thinking about the percent of the ad's media market that will see the ad. For example, in the article, Huber et al say that a GRP of 50 would mean half of the households in a media market saw a given ad. With this data, we can do things like see how a candidate's advantage in spending (spending peaks) might correspond with higher GRPs.
 With this in mind, I would think that in order to approximate advertising effects at the national level like a Huber type study or even at a district level, we would want to use the lessons from the readings and consider not just the amount of ads being aired or bought but also the amount of viewership of the ads through things like the GRP. Especially for district level races where a lot of the races might not have large numbers of ads being aired, looking at the viewership of ads might allow us to tell if advertising truly mattered. For example, if we saw a correlation between a candidate's peak in support and the amount of advertising being spent, but then also saw that the ads had very low viewership or had low GRPS, we may want to question whether or not the ads were casuing the peak in support. Maybe more ads are bought when outside factors are causing high levels of support and the campaign has more money. While it would be difficult for us to hone this conclusion down entirely, having access to information like GRPs and potentially seeing that some ads actually weren't even being viewed at high levels might allow us to conclude that the advertising was not the important factor at play.
