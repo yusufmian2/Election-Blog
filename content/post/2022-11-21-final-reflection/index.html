@@ -15,10 +15,7 @@ tags: []
 Now that the elections have (mostly) concluded, I will be taking some time to reflect on the elections and my predictions in this blog post. I will go through a recap of my model and the accuracy of this model in the election, some potential hypotheses for what might have gone wrong, and finally a description of what I might change for next time.
 <br>
 ## Summary of Model</p>
-<pre class="r"><code>table &lt;- matrix(c(&quot;1&quot;, &quot;48.03708&quot;, &quot;42.86052&quot;, &quot;53.21365&quot;, &quot;0.35&quot;, &quot;49.15375&quot;, &quot;45.38579&quot;, &quot;52.92172&quot;, &quot;0.35&quot;, &quot;48.80331&quot;, &quot;42.38851&quot;, &quot;55.21810&quot;, &quot;0.2&quot;, &quot;43.65825&quot;, &quot;35.59525&quot;, &quot;51.7215&quot;, &quot;0.1&quot;,  &quot;50.20460&quot;, &quot;50.20460&quot;, &quot;50.20460&quot;), ncol=4, byrow=TRUE)
-rownames(table) &lt;- c(&quot;Overall&quot;, &quot;Generic Ballot&quot;, &quot;Expert&quot;, &quot;Economic&quot;, &quot;Cook PVI&quot;)
-colnames(table) &lt;- c(&quot;Weight&quot;, &quot;Prediction&quot;, &quot;Lower&quot;, &quot;Upper&quot;)
-stargazer(table, title=&quot;Overall Prediction (Dem Predicted Voteshare)&quot;, type=&quot;text&quot;)</code></pre>
+<pre class="r"><code>stargazer(table, title=&quot;Overall Prediction (Dem Predicted Voteshare)&quot;, type=&quot;text&quot;)</code></pre>
 <pre><code>## 
 ## Overall Prediction (Dem Predicted Voteshare)
 ## ==================================================
@@ -32,10 +29,7 @@ stargazer(table, title=&quot;Overall Prediction (Dem Predicted Voteshare)&quot;,
 ## --------------------------------------------------</code></pre>
 <p><br>
 ## Accuracy of Model</p>
-<pre class="r"><code>table2 &lt;- matrix(c(&quot;47.74&quot;, &quot;0&quot; , &quot;48.04&quot;, &quot;0.30&quot;,&quot;49.15&quot;, &quot;1.41&quot;, &quot;48.80&quot;, &quot;1.06&quot;, &quot;43.66&quot;, &quot;4.08&quot;, &quot;50.20&quot;, &quot;2.46&quot;), ncol=2, byrow=TRUE)
-rownames(table2) &lt;- c(&quot;Actual&quot;, &quot;Overall&quot;, &quot;Generic Ballot&quot;, &quot;Expert&quot;, &quot;Economic&quot;, &quot;Cook PVI&quot;)
-colnames(table2) &lt;- c(&quot;Prediction&quot;, &quot;Error&quot;)
-stargazer(table2, title=&quot;Overall Prediction and Error&quot;, type=&quot;text&quot;)</code></pre>
+<pre class="r"><code>stargazer(table2, title=&quot;Overall Prediction and Error&quot;, type=&quot;text&quot;)</code></pre>
 <pre><code>## 
 ## Overall Prediction and Error
 ## ===============================

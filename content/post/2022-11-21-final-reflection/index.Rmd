@@ -16,11 +16,17 @@ Now that the elections have (mostly) concluded, I will be taking some time to re
 library(tidyverse); library(knitr); library(stargazer)
 library(readxl)
 setwd("/Users/yusufmian/Desktop/Election Analysis")
-```
-```{r}
 table <- matrix(c("1", "48.03708", "42.86052", "53.21365", "0.35", "49.15375", "45.38579", "52.92172", "0.35", "48.80331", "42.38851", "55.21810", "0.2", "43.65825", "35.59525", "51.7215", "0.1",  "50.20460", "50.20460", "50.20460"), ncol=4, byrow=TRUE)
 rownames(table) <- c("Overall", "Generic Ballot", "Expert", "Economic", "Cook PVI")
 colnames(table) <- c("Weight", "Prediction", "Lower", "Upper")
+table2 <- matrix(c("47.74", "0" , "48.04", "0.30","49.15", "1.41", "48.80", "1.06", "43.66", "4.08", "50.20", "2.46"), ncol=2, byrow=TRUE)
+rownames(table2) <- c("Actual", "Overall", "Generic Ballot", "Expert", "Economic", "Cook PVI")
+colnames(table2) <- c("Prediction", "Error")
+table2 <- matrix(c("47.74", "0" , "48.04", "0.30","49.15", "1.41", "48.80", "1.06", "43.66", "4.08", "50.20", "2.46"), ncol=2, byrow=TRUE)
+rownames(table2) <- c("Actual", "Overall", "Generic Ballot", "Expert", "Economic", "Cook PVI")
+colnames(table2) <- c("Prediction", "Error")
+```
+```{r}
 stargazer(table, title="Overall Prediction (Dem Predicted Voteshare)", type="text")
 ```
 <br>
@@ -28,9 +34,6 @@ stargazer(table, title="Overall Prediction (Dem Predicted Voteshare)", type="tex
 
 
 ```{r}
-table2 <- matrix(c("47.74", "0" , "48.04", "0.30","49.15", "1.41", "48.80", "1.06", "43.66", "4.08", "50.20", "2.46"), ncol=2, byrow=TRUE)
-rownames(table2) <- c("Actual", "Overall", "Generic Ballot", "Expert", "Economic", "Cook PVI")
-colnames(table2) <- c("Prediction", "Error")
 stargazer(table2, title="Overall Prediction and Error", type="text")
 ```
 <br>
