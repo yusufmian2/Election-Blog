@@ -88,15 +88,15 @@ Now that the elections have (mostly) concluded, I will be taking some time to re
 ## ===============================
 ##                Prediction Error
 ## -------------------------------
-## Actual           47.74      0  
-## Overall          48.04    0.30 
-## Generic Ballot   49.15    1.41 
-## Expert           48.80    1.06 
-## Economic         43.66    4.08 
-## Cook PVI         50.20    2.46 
+## Actual           48.12      0  
+## Overall          48.04    0.08 
+## Generic Ballot   49.15    1.03 
+## Expert           48.80    0.68 
+## Economic         43.66    4.46 
+## Cook PVI         50.20    2.08 
 ## -------------------------------</code></pre>
 <p><br>
-To get into the evaluation of the accuracy of my model, I have created a table showing the actual result of the election to each of the components of my model. Obviously, my model was a national model and was by popular vote, so it is much easier to compare the model to the election results. Additionally, it is important to keep in mind that the ballots are still being counted in some part of the country, so I will be comparing to the results available at the time. While it may change to some degree, as you can see, the Democrats ended with around 48 percent, which was what I predicted. Overall, my model was accurate to within 0.5% of the actual result! Obviously, this is not as impressive as some models because I was not predicting seat share or individual races, but it does mean that I had a pretty good model because I was so close. Since I don’t have things like individual seats to compare to, I will be instead reflecting on the accuracy of the components of my model.
+To get into the evaluation of the accuracy of my model, I have created a table showing the actual result of the election to each of the components of my model. Obviously, my model was a national model and was by popular vote, so it is much easier to compare the model to the election results. Additionally, it is important to keep in mind that the ballots are still being counted in some part of the country, so I will be comparing to the results available at the time. While it may change to some degree, as you can see, the Democrats ended with around 48 percent, which was what I predicted. Overall, my model was accurate to within 0.5% (and even within 0.1%) of the actual result! Obviously, this is not as impressive as some models because I was not predicting seat share or individual races, but it does mean that I had a pretty good model because I was so close. Since I don’t have things like individual seats to compare to, I will be instead reflecting on the accuracy of the components of my model.
 <br>
 As you can see, the generic ballot and expert parts of the model were by far the closest parts of the model. This makes a lot of sense because experts are generally good at their jobs (which is why I incorporated that into the model) and the generic ballot model, where I looked at an average of generic ballot polls close to the election, also gives a fairly good sense of where the country is at. Because most people predicted Democrats to lose by so much and they ended up keeping the Senate and keeping the House close, a lot of people want to say the polls are wrong. I think from both my model and just thinking about the polls, the polls were not actually wrong, but interpretation of what the polls meant was wrong. The Democrats did actually lose the popular vote nationally, but they kept the House close because they had a more efficient vote distribution than normal and didn’t lose as many seats. However, the economic part of the model obviously was wrong. It is important to keep in mind that this model was never great to begin with and had a wide interval, but still it was the furthest off. As I will get into in the next section, I think it is worth reflecting on why fundamentals models using things like the economy or President’s incumbency (which I chose not to use) were wrong this year and Democrats over performed expectations.
 <br>
@@ -107,6 +107,7 @@ While my model was pretty close, I do have a hypothesis as to why the fundamenta
 With access to adequate data, I think there are some ways this could be tested. What I would want to know is how voters in each of the key swing states ranked the key issues. I think it is highly likely that the economy would be towards the top of the list, but if we saw other issues like Democracy, Abortion, or any other issues also at the top of the list close to the economy, then that might help us understand that enough voters set aside the economy to help Democrats win. I also would want to look at things like ticket-splitting (if possible) and look at states where moderate Republicans were elected, but more extreme Republicans were not. Enough ticket-splitting could also help explain what let Democrats win despite the fundamentals model. I finally would want to know if in certain areas where Democrats did lose in large numbers (like Florida or parts of New York) if the economy was a more important issue. This may help give some insight into whether or not the fundamentals model was more right among voters who did not set aside the economy for other issues.
 <br>
 ## Changes of Model
+<br>
 I overall am pretty happy with my model. However, the one thing I wish I had chosen to use is something with turnout. Based on my own limited analysis of the turnout data, I thought it would not significantly impact my model. However, now that I see the results, I think looking at key groups (like young, Latino, or Black voters) and considering at what levels they turnout would help make a more interesting models. Some experts have said after the election that had Young voters not turned out in swing states that the Democrats would have lost a lot more races. Especially if I was using a district model or a seat share model, I think that thinking about how different groups turn out could present some different pictures. Using this data could help make a model not be “right” or “wrong”, but instead able to account for different possible outcomes. For example, had the Youth turnout been a lot lower, then maybe my model would have been very off. A turnout model could help predict those different possibilities.</p>
 </div>
 
@@ -125,7 +126,7 @@ I overall am pretty happy with my model. However, the one thing I wish I had cho
         		<footer>
 			
 			<span>
-			&copy; <time datetime="2022-11-20 22:55:11.176849 -0500 EST m=&#43;0.237999668">2022</time> . Made with <a href='https://gohugo.io'>Hugo</a> using the <a href='https://github.com/EmielH/tale-hugo/'>Tale</a> theme.
+			&copy; <time datetime="2022-11-22 10:06:01.567135 -0500 EST m=&#43;0.275496209">2022</time> . Made with <a href='https://gohugo.io'>Hugo</a> using the <a href='https://github.com/EmielH/tale-hugo/'>Tale</a> theme.
 			</span>
 		</footer>
 
